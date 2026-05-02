@@ -33,6 +33,16 @@ const TEMPLATE_COLORS: Record<string, { bg: string; accent: string; label: strin
   "social-card":     { bg: "#0f0b1e",  accent: "#7c3aed", label: "#a78bfa" },
   "split-reveal":    { bg: "#0c1018",  accent: "#f97316", label: "#fdba74" },
   "dark-countdown":  { bg: "#020910",  accent: "#10b981", label: "#6ee7b7" },
+  "viral-hook":      { bg: "#0a0a0a",  accent: "#facc15", label: "#fde68a" },
+  "tiktok-text":     { bg: "#111111",  accent: "#f72585", label: "#ff99cc" },
+  "viral-drop":      { bg: "#06000f",  accent: "#7c00ff", label: "#c084fc" },
+  "story-bg":        { bg: "#0e0e1a",  accent: "#7c3aed", label: "#c4b5fd" },
+  "reel-promo":      { bg: "#0a0a0a",  accent: "#a855f7", label: "#d8b4fe" },
+  "podcast-clip":    { bg: "#0d0d0d",  accent: "#eab308", label: "#fde68a" },
+  "glitch-intro":    { bg: "#080808",  accent: "#ffffff", label: "#aaaaaa" },
+  "product-launch":  { bg: "#000000",  accent: "#ffffff", label: "#888888" },
+  "before-after":    { bg: "#0c0c0c",  accent: "#34d399", label: "#6ee7b7" },
+  "text-storm":      { bg: "#050505",  accent: "#f59e0b", label: "#fcd34d" },
 };
 
 const FORMATS = [
