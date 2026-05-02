@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { NewProjectModal } from "./NewProjectModal";
 
 interface Project {
@@ -11,7 +11,143 @@ interface HomeScreenProps {
 }
 
 function formatId(id: string): string {
-  return id.replace(/-[a-z0-9]{4}$/, "").replace(/-/g, " ");
+  return id
+    .replace(/-[a-z0-9]{4}$/, "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function displayName(project: Project): string {
+  return project.title && project.title !== project.id
+    ? project.title
+    : formatId(project.id);
+}
+
+function ProjectCard({
+  project,
+  onOpen,
+  onDelete,
+  onRename,
+}: {
+  project: Project;
+  onOpen: () => void;
+  onDelete: () => void;
+  onRename: (title: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState(displayName(project));
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDraftName(displayName(project));
+    setEditing(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }, 0);
+  };
+
+  const commitEdit = () => {
+    const trimmed = draftName.trim();
+    if (trimmed && trimmed !== displayName(project)) {
+      onRename(trimmed);
+    }
+    setEditing(false);
+  };
+
+  const cancelEdit = () => {
+    setDraftName(displayName(project));
+    setEditing(false);
+  };
+
+  return (
+    <div
+      className="group relative flex flex-col rounded-lg border border-neutral-800/60 bg-neutral-900/40 hover:border-neutral-700 hover:bg-neutral-900 transition-all overflow-hidden cursor-pointer"
+      onClick={() => !editing && onOpen()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !editing) onOpen();
+      }}
+      tabIndex={editing ? -1 : 0}
+      role="button"
+      aria-label={`Open project ${displayName(project)}`}
+    >
+      {/* Thumbnail */}
+      <div
+        className="w-full bg-neutral-800/40 flex items-center justify-center"
+        style={{ aspectRatio: "16/9" }}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          className="text-neutral-700"
+        >
+          <path d="M5 3l14 9-14 9V3z" />
+        </svg>
+      </div>
+
+      {/* Info */}
+      <div className="px-3 py-2.5">
+        {editing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") commitEdit();
+              if (e.key === "Escape") cancelEdit();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full text-[12px] font-medium bg-neutral-800 border border-studio-accent/60 rounded px-1.5 py-0.5 text-neutral-100 focus:outline-none"
+          />
+        ) : (
+          <p
+            className="text-[12px] font-medium text-neutral-200 truncate"
+            onDoubleClick={startEdit}
+            title="Double-click to rename"
+          >
+            {displayName(project)}
+          </p>
+        )}
+        <p className="text-[10px] text-neutral-600 mt-0.5 font-mono truncate">{project.id}</p>
+      </div>
+
+      {/* Action buttons — shown on hover */}
+      {!editing && (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            type="button"
+            onClick={startEdit}
+            className="w-6 h-6 flex items-center justify-center rounded bg-neutral-900/80 text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+            title="Rename project"
+            aria-label="Rename project"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="w-6 h-6 flex items-center justify-center rounded bg-neutral-900/80 text-neutral-500 hover:text-red-400 hover:bg-neutral-800 transition-colors"
+            title="Delete project"
+            aria-label="Delete project"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function HomeScreen({ onOpenProject }: HomeScreenProps) {
@@ -21,7 +157,7 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const fetchProjects = () => {
+  const fetchProjects = useCallback(() => {
     setLoading(true);
     fetch("/api/projects")
       .then((r) => r.json())
@@ -30,11 +166,11 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   const handleCreate = async (name: string, templateId: string) => {
     const res = await fetch("/api/projects", {
@@ -63,6 +199,20 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
     }
   };
 
+  const handleRename = async (id: string, title: string) => {
+    try {
+      await fetch(`/api/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, title } : p)),
+      );
+    } catch {
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-neutral-950 text-neutral-100">
       {/* Header */}
@@ -71,7 +221,9 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-studio-accent">
             <path d="M5 3l14 9-14 9V3z" fill="currentColor" />
           </svg>
-          <span className="text-sm font-semibold text-neutral-100 tracking-tight">HyperFrames Studio</span>
+          <span className="text-sm font-semibold text-neutral-100 tracking-tight">
+            HyperFrames Studio
+          </span>
         </div>
         <button
           type="button"
@@ -92,10 +244,17 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
             <div className="w-4 h-4 rounded-full bg-studio-accent animate-pulse" />
           </div>
         ) : projects.length === 0 ? (
-          /* Empty state */
           <div className="flex flex-col items-center justify-center h-64 gap-4">
             <div className="w-12 h-12 rounded-xl bg-neutral-800/60 flex items-center justify-center">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-neutral-600">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="text-neutral-600"
+              >
                 <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z" />
                 <path d="M14 2v4a2 2 0 0 0 2 2h4" />
                 <path d="M12 12v6M9 15h6" />
@@ -103,7 +262,9 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-neutral-300">No projects yet</p>
-              <p className="text-[12px] text-neutral-600 mt-1">Create your first project to get started</p>
+              <p className="text-[12px] text-neutral-600 mt-1">
+                Create your first project to get started
+              </p>
             </div>
             <button
               type="button"
@@ -117,64 +278,36 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
             </button>
           </div>
         ) : (
-          /* Project grid */
           <div>
-            <h2 className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider mb-3">Projects</h2>
+            <h2 className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider mb-3">
+              Projects
+            </h2>
             <div className="grid grid-cols-3 gap-3 max-w-4xl">
               {projects.map((project) => (
-                <div
+                <ProjectCard
                   key={project.id}
-                  className="group relative flex flex-col rounded-lg border border-neutral-800/60 bg-neutral-900/40 hover:border-neutral-700 hover:bg-neutral-900 transition-all overflow-hidden cursor-pointer"
-                  onClick={() => onOpenProject(project.id)}
-                  onKeyDown={(e) => e.key === "Enter" && onOpenProject(project.id)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Open project ${project.title ?? project.id}`}
-                >
-                  {/* Thumbnail placeholder */}
-                  <div className="w-full bg-neutral-800/40 flex items-center justify-center" style={{ aspectRatio: "16/9" }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-neutral-700">
-                      <path d="M5 3l14 9-14 9V3z" />
-                    </svg>
-                  </div>
-
-                  {/* Info */}
-                  <div className="px-3 py-2.5">
-                    <p className="text-[12px] font-medium text-neutral-200 truncate capitalize">
-                      {project.title ?? formatId(project.id)}
-                    </p>
-                    <p className="text-[10px] text-neutral-600 mt-0.5 font-mono truncate">{project.id}</p>
-                  </div>
-
-                  {/* Delete button — appears on hover */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmDelete(project.id);
-                    }}
-                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded bg-neutral-900/80 text-neutral-500 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-neutral-800 transition-all"
-                    title="Delete project"
-                    aria-label="Delete project"
-                  >
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                    </svg>
-                  </button>
-                </div>
+                  project={project}
+                  onOpen={() => onOpenProject(project.id)}
+                  onDelete={() => setConfirmDelete(project.id)}
+                  onRename={(title) => void handleRename(project.id, title)}
+                />
               ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-80 rounded-xl border border-neutral-700 bg-neutral-900 shadow-2xl p-5">
             <h3 className="text-sm font-semibold text-neutral-100">Delete project?</h3>
             <p className="text-[12px] text-neutral-400 mt-1.5">
-              This will permanently delete <span className="font-medium text-neutral-300">{confirmDelete}</span> and all its files. This cannot be undone.
+              This will permanently delete{" "}
+              <span className="font-medium text-neutral-300">
+                {displayName(projects.find((p) => p.id === confirmDelete) ?? { id: confirmDelete })}
+              </span>{" "}
+              and all its files. This cannot be undone.
             </p>
             <div className="flex gap-2 mt-4 justify-end">
               <button

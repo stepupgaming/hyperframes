@@ -95,4 +95,7 @@ export interface StudioApiAdapter {
 
   /** Optional: delete a project and all its files by ID. */
   deleteProject?: (id: string) => Promise<void>;
+
+  /** Optional: rename a project (updates its display title). */
+  renameProject?: (id: string, title: string) => Promise<void>;
 }

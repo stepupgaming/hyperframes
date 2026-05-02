@@ -139,10 +139,20 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
         )
         .map((d) => {
           const session = sessionMap.get(d.name);
+          let metaTitle: string | undefined;
+          const metaPath = join(dataDir, d.name, "meta.json");
+          if (existsSync(metaPath)) {
+            try {
+              const meta = JSON.parse(readFileSync(metaPath, "utf-8")) as { title?: string };
+              if (meta.title) metaTitle = meta.title;
+            } catch {
+              /* skip corrupt */
+            }
+          }
           return {
             id: d.name,
             dir: join(dataDir, d.name),
-            title: session?.title ?? d.name,
+            title: session?.title ?? metaTitle ?? d.name,
             sessionId: session?.sessionId,
           } satisfies ResolvedProject;
         })
@@ -384,6 +394,11 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       const id = `${slug}-${suffix}`;
       const projectDir = join(dataDir, id);
       mkdirSync(projectDir, { recursive: true });
+      writeFileSync(
+        join(projectDir, "meta.json"),
+        JSON.stringify({ title: name, createdAt: new Date().toISOString() }),
+        "utf-8",
+      );
 
       if (templateId === "blank" || !templateId) {
         // Copy blank template from CLI package
@@ -443,6 +458,20 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       if (existsSync(projectDir)) {
         rmSync(projectDir, { recursive: true, force: true });
       }
+    },
+
+    async renameProject(id: string, title: string) {
+      const metaPath = join(dataDir, id, "meta.json");
+      let meta: Record<string, unknown> = {};
+      if (existsSync(metaPath)) {
+        try {
+          meta = JSON.parse(readFileSync(metaPath, "utf-8")) as Record<string, unknown>;
+        } catch {
+          /* ignore corrupt */
+        }
+      }
+      meta.title = title;
+      writeFileSync(metaPath, JSON.stringify(meta), "utf-8");
     },
   };
 }

@@ -51,11 +51,26 @@ export function registerProjectRoutes(api: Hono, adapter: StudioApiAdapter): voi
     return c.json(result);
   });
 
+  // Rename a project (updates its meta.json title)
+  api.patch("/projects/:id", async (c) => {
+    if (!adapter.renameProject) return c.json({ error: "not supported" }, 501);
+    const project = await adapter.resolveProject(c.req.param("id"));
+    if (!project) return c.json({ error: "not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { title?: string };
+    if (!body.title || typeof body.title !== "string" || !body.title.trim()) {
+      return c.json({ error: "title is required" }, 400);
+    }
+    await adapter.renameProject(c.req.param("id"), body.title.trim());
+    return c.json({ success: true });
+  });
+
   // Project file tree
   api.get("/projects/:id", async (c) => {
     const project = await adapter.resolveProject(c.req.param("id"));
     if (!project) return c.json({ error: "not found" }, 404);
-    const files = walkDir(project.dir);
+    // Exclude studio-internal files from the editor tree
+    const HIDDEN_FILES = new Set(["meta.json"]);
+    const files = walkDir(project.dir).filter((f) => !HIDDEN_FILES.has(f));
     return c.json({ id: project.id, files });
   });
 }
