@@ -10,20 +10,81 @@ interface TemplateInfo {
 
 interface NewProjectModalProps {
   onClose: () => void;
-  onCreate: (name: string, templateId: string) => Promise<void>;
+  onCreate: (name: string, templateId: string, format: string) => Promise<void>;
 }
 
 const TEMPLATE_COLORS: Record<string, { bg: string; accent: string; label: string }> = {
-  blank:        { bg: "#1a1a1a", accent: "#555", label: "#888" },
-  "warm-grain": { bg: "#f5f0e0", accent: "#c8a96e", label: "#7a5c2e" },
-  "swiss-grid": { bg: "#ffffff", accent: "#e63312", label: "#111" },
-  "kinetic-type": { bg: "#0d0014", accent: "#9b5cf6", label: "#c084fc" },
-  "play-mode":  { bg: "#0a1a0a", accent: "#22c55e", label: "#86efac" },
-  "product-promo": { bg: "#0a0f1e", accent: "#3b82f6", label: "#93c5fd" },
-  vignelli:     { bg: "#0a0a0a", accent: "#e63312", label: "#f87171" },
-  "nyt-graph":  { bg: "#f9f6f0", accent: "#222", label: "#555" },
-  "decision-tree": { bg: "#0a1a1a", accent: "#14b8a6", label: "#5eead4" },
+  blank:            { bg: "#1a1a1a", accent: "#555", label: "#888" },
+  "warm-grain":     { bg: "#f5f0e0", accent: "#c8a96e", label: "#7a5c2e" },
+  "swiss-grid":     { bg: "#ffffff", accent: "#e63312", label: "#111" },
+  "kinetic-type":   { bg: "#0d0014", accent: "#9b5cf6", label: "#c084fc" },
+  "play-mode":      { bg: "#0a1a0a", accent: "#22c55e", label: "#86efac" },
+  "product-promo":  { bg: "#0a0f1e", accent: "#3b82f6", label: "#93c5fd" },
+  vignelli:         { bg: "#0a0a0a", accent: "#e63312", label: "#f87171" },
+  "nyt-graph":      { bg: "#f9f6f0", accent: "#222", label: "#555" },
+  "decision-tree":  { bg: "#0a1a1a", accent: "#14b8a6", label: "#5eead4" },
 };
+
+const FORMATS = [
+  { id: "16:9",  w: 1920, h: 1080, label: "16:9",  hint: "YouTube · TV · Desktop" },
+  { id: "9:16",  w: 1080, h: 1920, label: "9:16",  hint: "TikTok · Reels · Shorts" },
+  { id: "1:1",   w: 1080, h: 1080, label: "1:1",   hint: "Instagram · Square" },
+  { id: "4:5",   w: 1080, h: 1350, label: "4:5",   hint: "Instagram Feed" },
+] as const;
+
+type FormatId = (typeof FORMATS)[number]["id"];
+
+function FormatPicker({
+  value,
+  onChange,
+}: {
+  value: FormatId;
+  onChange: (f: FormatId) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-neutral-400 mb-2">
+        Aspect ratio
+      </label>
+      <div className="flex gap-2">
+        {FORMATS.map((f) => {
+          const isPortrait = f.h > f.w;
+          const isSquare = f.w === f.h;
+          const selected = value === f.id;
+          // Visual proportions: constrain to a 48px tall box
+          const boxH = 40;
+          const boxW = isSquare ? 40 : isPortrait ? Math.round((boxH * f.w) / f.h) : Math.round((boxH * f.w) / f.h);
+          return (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => onChange(f.id)}
+              className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-lg border transition-all ${
+                selected
+                  ? "border-studio-accent bg-studio-accent/10 ring-1 ring-studio-accent/30"
+                  : "border-neutral-700 hover:border-neutral-500 bg-neutral-800/40"
+              }`}
+            >
+              {/* Mini rectangle */}
+              <div className="flex items-center justify-center" style={{ width: 48, height: 40 }}>
+                <div
+                  className={`rounded-sm border ${selected ? "border-studio-accent" : "border-neutral-500"}`}
+                  style={{ width: boxW, height: boxH }}
+                />
+              </div>
+              <span className={`text-[11px] font-semibold ${selected ? "text-studio-accent" : "text-neutral-300"}`}>
+                {f.label}
+              </span>
+              <span className="text-[9px] text-neutral-600 text-center leading-tight max-w-[72px]">
+                {f.hint}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function TemplateCard({
   template,
@@ -47,7 +108,6 @@ function TemplateCard({
           : "border-neutral-700/60 hover:border-neutral-500"
       }`}
     >
-      {/* Preview swatch */}
       <div
         className="w-full rounded-t-lg flex items-center justify-center overflow-hidden"
         style={{ backgroundColor: colors.bg, aspectRatio: isPortrait ? "9/16" : "16/9", maxHeight: 80 }}
@@ -68,7 +128,6 @@ function TemplateCard({
           </div>
         </div>
       </div>
-      {/* Info */}
       <div className="px-2.5 pb-2.5">
         <div className="text-[11px] font-semibold text-neutral-200 leading-tight">{template.title}</div>
         <div className="text-[10px] text-neutral-500 mt-0.5 leading-tight">{template.description}</div>
@@ -83,6 +142,7 @@ function TemplateCard({
 export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
   const [templates, setTemplates] = useState<TemplateInfo[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
+  const [format, setFormat] = useState<FormatId>("16:9");
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +168,7 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
     setCreating(true);
     setError(null);
     try {
-      await onCreate(trimmed, selectedTemplate);
+      await onCreate(trimmed, selectedTemplate, format);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project.");
       setCreating(false);
@@ -120,12 +180,15 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
     if (e.key === "Enter" && !creating) void handleCreate();
   };
 
+  // Only show format picker for "blank" template — registry templates have fixed dimensions
+  const showFormatPicker = selectedTemplate === "blank";
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onKeyDown={handleKeyDown}
     >
-      <div className="w-[620px] max-h-[90vh] flex flex-col rounded-xl border border-neutral-700/60 bg-neutral-900 shadow-2xl overflow-hidden">
+      <div className="w-[640px] max-h-[90vh] flex flex-col rounded-xl border border-neutral-700/60 bg-neutral-900 shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800">
           <h2 className="text-sm font-semibold text-neutral-100">New Project</h2>
@@ -141,7 +204,7 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Name field */}
+          {/* Name */}
           <div>
             <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">Project name</label>
             <input
@@ -157,7 +220,7 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
 
           {/* Template picker */}
           <div>
-            <label className="block text-[11px] font-medium text-neutral-400 mb-2">Start from a template</label>
+            <label className="block text-[11px] font-medium text-neutral-400 mb-2">Template</label>
             {templates.length === 0 ? (
               <div className="text-[11px] text-neutral-600">Loading templates…</div>
             ) : (
@@ -173,6 +236,11 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
               </div>
             )}
           </div>
+
+          {/* Format picker — only for blank */}
+          {showFormatPicker && (
+            <FormatPicker value={format} onChange={setFormat} />
+          )}
         </div>
 
         {/* Footer */}

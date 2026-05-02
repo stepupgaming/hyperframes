@@ -172,11 +172,11 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
     fetchProjects();
   }, [fetchProjects]);
 
-  const handleCreate = async (name: string, templateId: string) => {
+  const handleCreate = async (name: string, templateId: string, format: string) => {
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, templateId }),
+      body: JSON.stringify({ name, templateId, format }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Unknown error" }));

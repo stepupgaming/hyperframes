@@ -383,7 +383,7 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       return templates;
     },
 
-    async createProject({ name, templateId }: { name: string; templateId: string }) {
+    async createProject({ name, templateId, format }: { name: string; templateId: string; format?: string }) {
       // Slugify the name into a URL-safe id
       const slug = name
         .toLowerCase()
@@ -393,25 +393,45 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       const suffix = Math.random().toString(36).slice(2, 6);
       const id = `${slug}-${suffix}`;
       const projectDir = join(dataDir, id);
+      // Resolve dimensions from the requested format (default 16:9)
+      const FORMAT_DIMS: Record<string, { width: number; height: number }> = {
+        "16:9": { width: 1920, height: 1080 },
+        "9:16": { width: 1080, height: 1920 },
+        "1:1":  { width: 1080, height: 1080 },
+        "4:5":  { width: 1080, height: 1350 },
+      };
+      const dims = FORMAT_DIMS[format ?? "16:9"] ?? FORMAT_DIMS["16:9"];
+
       mkdirSync(projectDir, { recursive: true });
       writeFileSync(
         join(projectDir, "meta.json"),
-        JSON.stringify({ title: name, createdAt: new Date().toISOString() }),
+        JSON.stringify({ title: name, createdAt: new Date().toISOString(), format: format ?? "16:9" }),
         "utf-8",
       );
 
       if (templateId === "blank" || !templateId) {
-        // Copy blank template from CLI package
+        // Build a blank template with the correct dimensions
         const blankSrc = resolve(__dirname, "../cli/src/templates/blank/index.html");
-        const blankFallback = `<!doctype html>
+        let blankHtml: string;
+        if (existsSync(blankSrc)) {
+          blankHtml = readFileSync(blankSrc, "utf-8");
+          // Rewrite viewport and data attributes to match the selected format
+          blankHtml = blankHtml
+            .replace(/width=\d+,\s*height=\d+/g, `width=${dims.width}, height=${dims.height}`)
+            .replace(/width:\s*\d+px/g, `width: ${dims.width}px`)
+            .replace(/height:\s*\d+px/g, `height: ${dims.height}px`)
+            .replace(/data-width="[\d.]+"/g, `data-width="${dims.width}"`)
+            .replace(/data-height="[\d.]+"/g, `data-height="${dims.height}"`);
+        } else {
+          blankHtml = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta name="viewport" content="width=${dims.width}, height=${dims.height}" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      html, body { width: ${dims.width}px; height: ${dims.height}px; overflow: hidden; background: #000; }
     </style>
   </head>
   <body>
@@ -419,9 +439,9 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="5"
-      data-width="1920"
-      data-height="1080"
+      data-duration="30"
+      data-width="${dims.width}"
+      data-height="${dims.height}"
     ></div>
     <script>
       window.__timelines = window.__timelines || {};
@@ -429,11 +449,8 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
     </script>
   </body>
 </html>`;
-        if (existsSync(blankSrc)) {
-          copyFileSync(blankSrc, join(projectDir, "index.html"));
-        } else {
-          writeFileSync(join(projectDir, "index.html"), blankFallback, "utf-8");
         }
+        writeFileSync(join(projectDir, "index.html"), blankHtml, "utf-8");
       } else {
         // Copy from registry/examples/<templateId>/
         const registrySrc = resolve(__dirname, "../../registry/examples", templateId);

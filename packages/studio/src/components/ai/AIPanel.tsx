@@ -73,6 +73,7 @@ const TOOL_LABELS: Record<string, string> = {
   list_files: "Listing project files",
   read_file: "Reading",
   write_file: "Writing",
+  delete_file: "Deleting",
 };
 
 function toolLabel(name: string, args: string): string {
