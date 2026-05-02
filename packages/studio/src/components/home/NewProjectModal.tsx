@@ -14,15 +14,25 @@ interface NewProjectModalProps {
 }
 
 const TEMPLATE_COLORS: Record<string, { bg: string; accent: string; label: string }> = {
-  blank:            { bg: "#1a1a1a", accent: "#555", label: "#888" },
-  "warm-grain":     { bg: "#f5f0e0", accent: "#c8a96e", label: "#7a5c2e" },
-  "swiss-grid":     { bg: "#ffffff", accent: "#e63312", label: "#111" },
-  "kinetic-type":   { bg: "#0d0014", accent: "#9b5cf6", label: "#c084fc" },
-  "play-mode":      { bg: "#0a1a0a", accent: "#22c55e", label: "#86efac" },
-  "product-promo":  { bg: "#0a0f1e", accent: "#3b82f6", label: "#93c5fd" },
-  vignelli:         { bg: "#0a0a0a", accent: "#e63312", label: "#f87171" },
-  "nyt-graph":      { bg: "#f9f6f0", accent: "#222", label: "#555" },
-  "decision-tree":  { bg: "#0a1a1a", accent: "#14b8a6", label: "#5eead4" },
+  blank:             { bg: "#1a1a1a",  accent: "#555",    label: "#888" },
+  "warm-grain":      { bg: "#f5f0e0",  accent: "#c8a96e", label: "#7a5c2e" },
+  "swiss-grid":      { bg: "#ffffff",  accent: "#e63312", label: "#111" },
+  "kinetic-type":    { bg: "#0d0014",  accent: "#9b5cf6", label: "#c084fc" },
+  "play-mode":       { bg: "#0a1a0a",  accent: "#22c55e", label: "#86efac" },
+  "product-promo":   { bg: "#0a0f1e",  accent: "#3b82f6", label: "#93c5fd" },
+  vignelli:          { bg: "#0a0a0a",  accent: "#e63312", label: "#f87171" },
+  "nyt-graph":       { bg: "#f9f6f0",  accent: "#222",    label: "#555" },
+  "decision-tree":   { bg: "#0a1a1a",  accent: "#14b8a6", label: "#5eead4" },
+  "neon-pulse":      { bg: "#050510",  accent: "#ff0066", label: "#ff6eb4" },
+  "minimal-reveal":  { bg: "#f5f4f0",  accent: "#1a1a1a", label: "#777" },
+  "gradient-flow":   { bg: "#1a0533",  accent: "#8b5cf6", label: "#c4b5fd" },
+  "stat-board":      { bg: "#060d1f",  accent: "#0ea5e9", label: "#7dd3fc" },
+  "retro-wave":      { bg: "#0d0221",  accent: "#ff6ac1", label: "#c77dff" },
+  "film-title":      { bg: "#000000",  accent: "#d4af37", label: "#f5e27e" },
+  "bold-manifesto":  { bg: "#0c0c0c",  accent: "#ffffff", label: "#aaaaaa" },
+  "social-card":     { bg: "#0f0b1e",  accent: "#7c3aed", label: "#a78bfa" },
+  "split-reveal":    { bg: "#0c1018",  accent: "#f97316", label: "#fdba74" },
+  "dark-countdown":  { bg: "#020910",  accent: "#10b981", label: "#6ee7b7" },
 };
 
 const FORMATS = [
