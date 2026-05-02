@@ -1,6 +1,8 @@
 import type { Hono } from "hono";
 import type { StudioApiAdapter } from "../types.js";
 import { walkDir } from "../helpers/safePath.js";
+import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
 
 export function registerProjectRoutes(api: Hono, adapter: StudioApiAdapter): void {
   // List all templates available for new project creation
@@ -23,8 +25,9 @@ export function registerProjectRoutes(api: Hono, adapter: StudioApiAdapter): voi
       name?: string;
       templateId?: string;
       format?: string;
+      description?: string;
     };
-    const { name, templateId, format } = body;
+    const { name, templateId, format, description } = body;
     if (!name || typeof name !== "string" || !name.trim()) {
       return c.json({ error: "name is required" }, 400);
     }
@@ -32,7 +35,17 @@ export function registerProjectRoutes(api: Hono, adapter: StudioApiAdapter): voi
       name: name.trim(),
       templateId: templateId ?? "blank",
       format,
+      description: description?.trim() || undefined,
     });
+    return c.json(result, 201);
+  });
+
+  // Duplicate a project
+  api.post("/projects/:id/duplicate", async (c) => {
+    if (!adapter.duplicateProject) return c.json({ error: "not supported" }, 501);
+    const project = await adapter.resolveProject(c.req.param("id"));
+    if (!project) return c.json({ error: "not found" }, 404);
+    const result = await adapter.duplicateProject(c.req.param("id"));
     return c.json(result, 201);
   });
 
@@ -67,6 +80,47 @@ export function registerProjectRoutes(api: Hono, adapter: StudioApiAdapter): voi
     }
     await adapter.renameProject(c.req.param("id"), body.title.trim());
     return c.json({ success: true });
+  });
+
+  // Project metadata (title, format, description, etc.)
+  api.get("/projects/:id/meta", async (c) => {
+    const project = await adapter.resolveProject(c.req.param("id"));
+    if (!project) return c.json({ error: "not found" }, 404);
+    const { existsSync, readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const metaPath = join(project.dir, "meta.json");
+    if (!existsSync(metaPath)) return c.json({});
+    try {
+      const meta = JSON.parse(readFileSync(metaPath, "utf-8")) as Record<string, unknown>;
+      return c.json(meta);
+    } catch {
+      return c.json({});
+    }
+  });
+
+  // Export project as ZIP
+  api.get("/projects/:id/export.zip", async (c) => {
+    const project = await adapter.resolveProject(c.req.param("id"));
+    if (!project) return c.json({ error: "not found" }, 404);
+
+    const projectDir = resolve(project.dir);
+    const result = spawnSync(
+      "zip",
+      ["-r", "-", ".", "-x", "*/meta.json", "-x", ".thumbnails/*", "-x", ".waveform-cache/*"],
+      { cwd: projectDir, maxBuffer: 500 * 1024 * 1024 },
+    );
+
+    if (result.status !== 0 || !result.stdout?.length) {
+      return c.json({ error: "ZIP creation failed" }, 500);
+    }
+
+    const safeName = (project.title ?? project.id).replace(/[^a-zA-Z0-9_-]/g, "_");
+    return new Response(new Uint8Array(result.stdout), {
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="${safeName}.zip"`,
+      },
+    });
   });
 
   // Project file tree

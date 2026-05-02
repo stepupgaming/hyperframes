@@ -129,7 +129,8 @@ This project is LANDSCAPE (${w}×${h}).
 2. Read any existing files you'll modify (\`read_file\`)
 3. Write complete files — never partial diffs (\`write_file\`)
 4. Clean up old files if restructuring (\`delete_file\`)
-5. When done, briefly describe what was built
+5. Use \`screenshot_preview\` to visually verify the result after writing
+6. When done, briefly describe what was built
 
 ## Quality bar
 - Produce visually striking results: use bold typography, color contrast, smooth easing
@@ -202,6 +203,24 @@ const TOOLS = [
           },
         },
         required: ["path"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "screenshot_preview",
+      description:
+        "Capture a screenshot of the current composition preview to visually verify your work. After writing files, call this to see what the composition looks like. Returns a base64 image.",
+      parameters: {
+        type: "object",
+        properties: {
+          time: {
+            type: "number",
+            description: "Time in seconds to seek to before capturing (default: 0.5)",
+          },
+        },
+        required: [],
       },
     },
   },
@@ -361,6 +380,24 @@ export function registerAiRoutes(api: Hono, adapter: StudioApiAdapter): void {
           return c.json({ result: `Deleted: ${rel}` });
         } catch (err) {
           return c.json({ result: `Error deleting file: ${String(err)}` });
+        }
+      }
+
+      case "screenshot_preview": {
+        const t = parseFloat(String(body.args.time ?? "0.5")) || 0.5;
+        const host = c.req.header("host") ?? "localhost";
+        const thumbUrl = `http://${host}/api/projects/${project.id}/thumbnail/index.html?t=${t}&w=960&h=540`;
+        try {
+          const thumbRes = await fetch(thumbUrl, { signal: AbortSignal.timeout(20_000) });
+          if (!thumbRes.ok) {
+            return c.json({ result: `Screenshot unavailable (status ${thumbRes.status}). The thumbnail service may not be running.` });
+          }
+          const buf = await thumbRes.arrayBuffer();
+          const b64 = Buffer.from(buf).toString("base64");
+          const contentType = thumbRes.headers.get("content-type") ?? "image/jpeg";
+          return c.json({ result: `data:${contentType};base64,${b64}` });
+        } catch (err) {
+          return c.json({ result: `Screenshot failed: ${String(err)}` });
         }
       }
 

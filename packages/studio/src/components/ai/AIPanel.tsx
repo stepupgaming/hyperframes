@@ -67,6 +67,7 @@ function parseSSELine(line: string): ParsedChunk | null {
 interface AIPanelProps {
   projectId: string;
   onFileWritten?: () => void;
+  initialMessage?: string;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -74,6 +75,7 @@ const TOOL_LABELS: Record<string, string> = {
   read_file: "Reading",
   write_file: "Writing",
   delete_file: "Deleting",
+  screenshot_preview: "Screenshot",
 };
 
 function toolLabel(name: string, args: string): string {
@@ -87,7 +89,7 @@ function toolLabel(name: string, args: string): string {
   return base;
 }
 
-export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
+export function AIPanel({ projectId, onFileWritten, initialMessage }: AIPanelProps) {
   const [config, setConfig] = useState<AIConfig>(loadAIConfig);
   const [showSettings, setShowSettings] = useState(false);
   const [messages, setMessages] = useState<OpenAIMessage[]>([]);
@@ -95,13 +97,49 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const autoSentRef = useRef(false);
 
+  // ── Scroll to bottom on new messages ──────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [display]);
+
+  // ── Chat history — load from localStorage on mount ─────────────────────────
+  const historyKey = `hf-ai-history-${projectId}`;
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(historyKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as {
+          messages?: OpenAIMessage[];
+          display?: DisplayMessage[];
+        };
+        if (parsed.messages?.length) setMessages(parsed.messages);
+        if (parsed.display?.length) setDisplay(parsed.display);
+      }
+    } catch {
+      /* ignore corrupt */
+    } finally {
+      setHistoryLoaded(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Chat history — save on change ──────────────────────────────────────────
+  useEffect(() => {
+    if (!historyLoaded) return;
+    try {
+      if (messages.length > 0 || display.length > 0) {
+        localStorage.setItem(historyKey, JSON.stringify({ messages, display }));
+      }
+    } catch {
+      /* ignore quota */
+    }
+  }, [messages, display, historyKey, historyLoaded]);
 
   const reloadConfig = () => setConfig(loadAIConfig());
 
@@ -252,6 +290,10 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
       if (toolCallSpecs.length > 0 && finishReason === "tool_calls") {
         let wroteFiles = false;
 
+        // Collect all results first so vision messages can be injected after
+        // all tool messages (required by the OpenAI message ordering rules).
+        const toolResults: Array<{ tc: ToolCallSpec; result: string }> = [];
+
         for (const tc of toolCallSpecs) {
           // Mark as running in display
           setStreamingDisplay((prev) => {
@@ -265,8 +307,8 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
           });
 
           const result = await executeTool(tc);
-
           if (tc.function.name === "write_file") wroteFiles = true;
+          toolResults.push({ tc, result });
 
           // Mark as done in display
           setStreamingDisplay((prev) => {
@@ -280,19 +322,45 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
             updated[updated.length - 1] = last;
             return updated;
           });
+        }
 
+        if (wroteFiles) onFileWritten?.();
+
+        // Add tool result messages (screenshots use a text placeholder)
+        for (const { tc, result } of toolResults) {
+          const isScreenshot =
+            tc.function.name === "screenshot_preview" && result.startsWith("data:image/");
           updatedMsgs = [
             ...updatedMsgs,
             {
               role: "tool" as const,
               tool_call_id: tc.id,
               name: tc.function.name,
-              content: result,
+              content: isScreenshot ? "Screenshot captured." : result,
             },
           ];
         }
 
-        if (wroteFiles) onFileWritten?.();
+        // Inject vision user messages for screenshots (AFTER all tool results)
+        const screenshots = toolResults.filter(
+          ({ tc, result }) =>
+            tc.function.name === "screenshot_preview" && result.startsWith("data:image/"),
+        );
+        if (screenshots.length > 0) {
+          updatedMsgs = [
+            ...updatedMsgs,
+            {
+              role: "user" as const,
+              content: [
+                { type: "text", text: "Here is the current composition preview:" },
+                ...screenshots.map(({ result }) => ({
+                  type: "image_url" as const,
+                  image_url: { url: result },
+                })),
+              ] as unknown as string,
+            },
+          ];
+        }
 
         // Continue the loop (agent may call more tools or produce final answer)
         updatedMsgs = await runLoop(updatedMsgs, cfg, setStreamingDisplay);
@@ -305,15 +373,15 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
 
   // ── Send a message ─────────────────────────────────────────────────────────
 
-  const send = useCallback(async () => {
-    const text = input.trim();
+  const send = useCallback(async (override?: string) => {
+    const text = (override ?? input).trim();
     if (!text || streaming) return;
     if (!config.apiKey) {
       setShowSettings(true);
       return;
     }
 
-    setInput("");
+    if (!override) setInput("");
     setError(null);
     setStreaming(true);
 
@@ -335,6 +403,17 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
     }
   }, [input, streaming, config, messages, runLoop]);
 
+  // ── Auto-send initialMessage once if no existing history ──────────────────
+  useEffect(() => {
+    if (!initialMessage || autoSentRef.current || !historyLoaded) return;
+    if (messages.length > 0) { autoSentRef.current = true; return; }
+    if (!config.apiKey) return;
+    autoSentRef.current = true;
+    const timer = setTimeout(() => void send(initialMessage), 600);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMessage, historyLoaded, config.apiKey]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -353,6 +432,8 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
     setMessages([]);
     setDisplay([]);
     setError(null);
+    autoSentRef.current = false;
+    try { localStorage.removeItem(historyKey); } catch { /* ignore */ }
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -466,10 +547,19 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
                         </svg>
                       )}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <span className="text-[11px] text-neutral-400 font-mono">
                         {toolLabel(tc.name, tc.args)}
                       </span>
+                      {/* Show screenshot inline */}
+                      {tc.name === "screenshot_preview" &&
+                        tc.result?.startsWith("data:image/") && (
+                          <img
+                            src={tc.result}
+                            alt="Preview screenshot"
+                            className="mt-1.5 w-full rounded border border-neutral-700"
+                          />
+                        )}
                     </div>
                   </div>
                 ))}
@@ -532,7 +622,7 @@ export function AIPanel({ projectId, onFileWritten }: AIPanelProps) {
               onClick={() => void send()}
               disabled={!input.trim()}
               className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg bg-studio-accent/20 text-studio-accent hover:bg-studio-accent/30 disabled:opacity-30 transition-colors"
-              title="Send (Enter)"
+              title="Send (Enter · ⌘Enter for new line)"
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="22" y1="2" x2="11" y2="13" />

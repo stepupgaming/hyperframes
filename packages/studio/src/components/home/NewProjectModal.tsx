@@ -10,7 +10,7 @@ interface TemplateInfo {
 
 interface NewProjectModalProps {
   onClose: () => void;
-  onCreate: (name: string, templateId: string, format: string) => Promise<void>;
+  onCreate: (name: string, templateId: string, format: string, description?: string) => Promise<void>;
 }
 
 const TEMPLATE_COLORS: Record<string, { bg: string; accent: string; label: string }> = {
@@ -51,7 +51,6 @@ function FormatPicker({
           const isPortrait = f.h > f.w;
           const isSquare = f.w === f.h;
           const selected = value === f.id;
-          // Visual proportions: constrain to a 48px tall box
           const boxH = 40;
           const boxW = isSquare ? 40 : isPortrait ? Math.round((boxH * f.w) / f.h) : Math.round((boxH * f.w) / f.h);
           return (
@@ -65,7 +64,6 @@ function FormatPicker({
                   : "border-neutral-700 hover:border-neutral-500 bg-neutral-800/40"
               }`}
             >
-              {/* Mini rectangle */}
               <div className="flex items-center justify-center" style={{ width: 48, height: 40 }}>
                 <div
                   className={`rounded-sm border ${selected ? "border-studio-accent" : "border-neutral-500"}`}
@@ -144,8 +142,10 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
   const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const [format, setFormat] = useState<FormatId>("16:9");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDescription, setShowDescription] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -168,7 +168,7 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
     setCreating(true);
     setError(null);
     try {
-      await onCreate(trimmed, selectedTemplate, format);
+      await onCreate(trimmed, selectedTemplate, format, description.trim() || undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project.");
       setCreating(false);
@@ -177,10 +177,9 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") onClose();
-    if (e.key === "Enter" && !creating) void handleCreate();
+    if (e.key === "Enter" && !creating && !showDescription) void handleCreate();
   };
 
-  // Only show format picker for "blank" template — registry templates have fixed dimensions
   const showFormatPicker = selectedTemplate === "blank";
 
   return (
@@ -241,6 +240,39 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
           {showFormatPicker && (
             <FormatPicker value={format} onChange={setFormat} />
           )}
+
+          {/* Description — AI prompt */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowDescription((v) => !v)}
+              className="flex items-center gap-1.5 text-[11px] text-neutral-500 hover:text-neutral-300 transition-colors mb-1.5"
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className={`transition-transform ${showDescription ? "rotate-90" : ""}`}
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+              <span>Describe your video</span>
+              <span className="text-[10px] text-neutral-700 ml-1">(optional — AI will build it for you)</span>
+            </button>
+            {showDescription && (
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="A cinematic product reveal with bold typography, dark background, and smooth fade-in animations…"
+                rows={3}
+                autoFocus
+                className="w-full px-3 py-2 rounded-md bg-neutral-800 border border-neutral-700 text-[12px] text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-studio-accent/60 focus:ring-1 focus:ring-studio-accent/20 resize-none transition-colors"
+              />
+            )}
+          </div>
         </div>
 
         {/* Footer */}
@@ -258,7 +290,7 @@ export function NewProjectModal({ onClose, onCreate }: NewProjectModalProps) {
             disabled={creating}
             className="h-7 px-3.5 rounded-md text-[11px] font-semibold bg-studio-accent text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            {creating ? "Creating…" : "Create project"}
+            {creating ? "Creating…" : description.trim() ? "Create & build with AI" : "Create project"}
           </button>
         </div>
       </div>

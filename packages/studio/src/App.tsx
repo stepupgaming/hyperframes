@@ -53,6 +53,8 @@ import { buildFrameCaptureFilename, buildFrameCaptureUrl } from "./utils/frameCa
 import { buildProjectHash, parseProjectIdFromHash } from "./utils/projectRouting";
 import { Camera } from "./icons/SystemIcons";
 import { AIPanel } from "./components/ai/AIPanel";
+import { FontPickerPanel } from "./components/editor/FontPickerPanel";
+import { GenerateAssetPanel } from "./components/ai/GenerateAssetPanel";
 
 interface EditingFile {
   path: string;
@@ -125,12 +127,34 @@ export function StudioApp() {
   const [resolving, setResolving] = useState(true);
   const [showHome, setShowHome] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [showFontPanel, setShowFontPanel] = useState(false);
+  const [showGeneratePanel, setShowGeneratePanel] = useState(false);
+  const [projectDescription, setProjectDescription] = useState<string | null>(null);
 
   const openProject = useCallback((id: string) => {
     setProjectId(id);
     setShowHome(false);
+    setProjectDescription(null);
     window.location.hash = buildProjectHash(id);
   }, []);
+
+  // Fetch project meta on open (for description-to-AI flow)
+  useEffect(() => {
+    if (!projectId) return;
+    fetch(`/api/projects/${projectId}/meta`)
+      .then((r) => r.json())
+      .then((meta: { description?: string }) => {
+        if (meta.description?.trim()) {
+          setProjectDescription(meta.description.trim());
+          // Auto-open AI panel if no saved history for this project
+          const historyKey = `hf-ai-history-${projectId}`;
+          if (!localStorage.getItem(historyKey)) {
+            setShowAiPanel(true);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [projectId]);
 
   useMountEffect(() => {
     const hashProjectId = parseProjectIdFromHash(window.location.hash);
@@ -299,6 +323,8 @@ export function StudioApp() {
   const setZoomMode = usePlayerStore((s) => s.setZoomMode);
   const setManualZoomPercent = usePlayerStore((s) => s.setManualZoomPercent);
   const timelineElements = usePlayerStore((s) => s.elements);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const setIsPlaying = usePlayerStore((s) => s.setIsPlaying);
   const timelineDuration = usePlayerStore((s) => s.duration);
   const effectiveTimelineDuration = useMemo(() => {
     const maxEnd =
@@ -352,6 +378,7 @@ export function StudioApp() {
       window.removeEventListener("keydown", handleTimelineToggleHotkey);
     };
   });
+
 
   const syncPreviewTimelineHotkey = useCallback(
     (iframe: HTMLIFrameElement | null) => {
@@ -844,6 +871,59 @@ export function StudioApp() {
     setAppToast({ message, tone });
     toastTimerRef.current = setTimeout(() => setAppToast(null), 4000);
   }, []);
+
+  // ── Global keyboard shortcuts ─────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      )
+        return;
+
+      // Space — toggle play/pause
+      if (e.code === "Space" && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        const store = usePlayerStore.getState();
+        store.setIsPlaying(!store.isPlaying);
+        return;
+      }
+      // K — pause
+      if ((e.key === "k" || e.key === "K") && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        usePlayerStore.getState().setIsPlaying(false);
+        return;
+      }
+      // L — play
+      if ((e.key === "l" || e.key === "L") && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        usePlayerStore.getState().setIsPlaying(true);
+        return;
+      }
+      // J — stop
+      if ((e.key === "j" || e.key === "J") && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        usePlayerStore.getState().setIsPlaying(false);
+        return;
+      }
+      // Cmd/Ctrl+S — auto-save toast
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        showToast("Auto-saved", "info");
+        return;
+      }
+      // Cmd/Ctrl+/ — toggle AI panel
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+        e.preventDefault();
+        setShowAiPanel((v) => !v);
+        return;
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [showToast]);
 
   const handleCaptureFrameClick = useCallback(
     async (event: MouseEvent<HTMLAnchorElement>) => {
@@ -1494,6 +1574,41 @@ export function StudioApp() {
             Renders
             {renderQueue.jobs.length > 0 ? ` (${renderQueue.jobs.length})` : ""}
           </button>
+          {/* Fonts picker */}
+          <button
+            onClick={() => {
+              setShowFontPanel((v) => !v);
+              setShowGeneratePanel(false);
+            }}
+            className={`h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-medium border transition-colors ${
+              showFontPanel
+                ? "text-studio-accent bg-studio-accent/10 border-studio-accent/30"
+                : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 border-transparent"
+            }`}
+            title="Google Fonts picker"
+          >
+            <span className="text-[12px] font-bold leading-none">Tt</span>
+            Fonts
+          </button>
+          {/* Generate assets */}
+          <button
+            onClick={() => {
+              setShowGeneratePanel((v) => !v);
+              setShowFontPanel(false);
+            }}
+            className={`h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-medium border transition-colors ${
+              showGeneratePanel
+                ? "text-studio-accent bg-studio-accent/10 border-studio-accent/30"
+                : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 border-transparent"
+            }`}
+            title="Generate image or video assets"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            Generate
+          </button>
+          {/* AI agent */}
           <button
             onClick={() => setShowAiPanel((v) => !v)}
             className={`h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-medium border transition-colors ${
@@ -1501,7 +1616,7 @@ export function StudioApp() {
                 ? "text-studio-accent bg-studio-accent/10 border-studio-accent/30"
                 : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 border-transparent"
             }`}
-            title="Toggle AI agent"
+            title="Toggle AI agent (⌘/)"
           >
             <svg
               width="12"
@@ -1734,6 +1849,25 @@ export function StudioApp() {
         )}
       </div>
 
+      {/* Font Picker Panel */}
+      {showFontPanel && projectId && (
+        <FontPickerPanel
+          projectId={projectId}
+          currentFilePath={editingFile?.path ?? null}
+          onClose={() => setShowFontPanel(false)}
+          onFontInjected={() => setRefreshKey((k) => k + 1)}
+        />
+      )}
+
+      {/* Generate Assets Panel */}
+      {showGeneratePanel && projectId && (
+        <GenerateAssetPanel
+          projectId={projectId}
+          onClose={() => setShowGeneratePanel(false)}
+          onAssetGenerated={refreshFileTree}
+        />
+      )}
+
       {/* AI Panel — absolute overlay on the right, below the header */}
       {showAiPanel && projectId && (
         <div
@@ -1743,6 +1877,7 @@ export function StudioApp() {
           <AIPanel
             projectId={projectId}
             onFileWritten={() => setRefreshKey((k) => k + 1)}
+            initialMessage={projectDescription ?? undefined}
           />
         </div>
       )}

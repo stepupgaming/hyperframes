@@ -28,15 +28,20 @@ function ProjectCard({
   onOpen,
   onDelete,
   onRename,
+  onDuplicate,
 }: {
   project: Project;
   onOpen: () => void;
   onDelete: () => void;
   onRename: (title: string) => void;
+  onDuplicate: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(displayName(project));
+  const [thumbError, setThumbError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const thumbUrl = `/api/projects/${project.id}/thumbnail/index.html?t=0.5&w=640&h=360`;
 
   const startEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -74,20 +79,30 @@ function ProjectCard({
     >
       {/* Thumbnail */}
       <div
-        className="w-full bg-neutral-800/40 flex items-center justify-center"
+        className="w-full bg-neutral-800/40 flex items-center justify-center relative overflow-hidden"
         style={{ aspectRatio: "16/9" }}
       >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          className="text-neutral-700"
-        >
-          <path d="M5 3l14 9-14 9V3z" />
-        </svg>
+        {!thumbError ? (
+          <img
+            src={thumbUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={() => setThumbError(true)}
+            loading="lazy"
+          />
+        ) : (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            className="text-neutral-700"
+          >
+            <path d="M5 3l14 9-14 9V3z" />
+          </svg>
+        )}
       </div>
 
       {/* Info */}
@@ -122,6 +137,7 @@ function ProjectCard({
       {/* Action buttons — shown on hover */}
       {!editing && (
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Rename */}
           <button
             type="button"
             onClick={startEdit}
@@ -133,6 +149,35 @@ function ProjectCard({
               <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
             </svg>
           </button>
+          {/* Duplicate */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+            className="w-6 h-6 flex items-center justify-center rounded bg-neutral-900/80 text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+            title="Duplicate project"
+            aria-label="Duplicate project"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          {/* Export ZIP */}
+          <a
+            href={`/api/projects/${project.id}/export.zip`}
+            download
+            onClick={(e) => e.stopPropagation()}
+            className="w-6 h-6 flex items-center justify-center rounded bg-neutral-900/80 text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+            title="Export as ZIP"
+            aria-label="Export project as ZIP"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </a>
+          {/* Delete */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
@@ -156,6 +201,7 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
   const [showNewModal, setShowNewModal] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
 
   const fetchProjects = useCallback(() => {
     setLoading(true);
@@ -172,11 +218,11 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
     fetchProjects();
   }, [fetchProjects]);
 
-  const handleCreate = async (name: string, templateId: string, format: string) => {
+  const handleCreate = async (name: string, templateId: string, format: string, description?: string) => {
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, templateId, format }),
+      body: JSON.stringify({ name, templateId, format, description }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Unknown error" }));
@@ -210,6 +256,18 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
         prev.map((p) => (p.id === id ? { ...p, title } : p)),
       );
     } catch {
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    setDuplicating(id);
+    try {
+      const res = await fetch(`/api/projects/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) throw new Error("Duplicate failed");
+      fetchProjects();
+    } catch {
+    } finally {
+      setDuplicating(null);
     }
   };
 
@@ -284,13 +342,20 @@ export function HomeScreen({ onOpenProject }: HomeScreenProps) {
             </h2>
             <div className="grid grid-cols-3 gap-3 max-w-4xl">
               {projects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onOpen={() => onOpenProject(project.id)}
-                  onDelete={() => setConfirmDelete(project.id)}
-                  onRename={(title) => void handleRename(project.id, title)}
-                />
+                <div key={project.id} className="relative">
+                  <ProjectCard
+                    project={project}
+                    onOpen={() => onOpenProject(project.id)}
+                    onDelete={() => setConfirmDelete(project.id)}
+                    onRename={(title) => void handleRename(project.id, title)}
+                    onDuplicate={() => void handleDuplicate(project.id)}
+                  />
+                  {duplicating === project.id && (
+                    <div className="absolute inset-0 rounded-lg bg-neutral-900/70 flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full border-2 border-studio-accent border-t-transparent animate-spin" />
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

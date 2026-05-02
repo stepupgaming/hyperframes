@@ -383,7 +383,7 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       return templates;
     },
 
-    async createProject({ name, templateId, format }: { name: string; templateId: string; format?: string }) {
+    async createProject({ name, templateId, format, description }: { name: string; templateId: string; format?: string; description?: string }) {
       // Slugify the name into a URL-safe id
       const slug = name
         .toLowerCase()
@@ -405,7 +405,12 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       mkdirSync(projectDir, { recursive: true });
       writeFileSync(
         join(projectDir, "meta.json"),
-        JSON.stringify({ title: name, createdAt: new Date().toISOString(), format: format ?? "16:9" }),
+        JSON.stringify({
+          title: name,
+          createdAt: new Date().toISOString(),
+          format: format ?? "16:9",
+          ...(description ? { description } : {}),
+        }),
         "utf-8",
       );
 
@@ -468,6 +473,33 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
       }
 
       return { id };
+    },
+
+    async duplicateProject(id: string) {
+      const srcDir = join(dataDir, id);
+      const srcMeta = existsSync(join(srcDir, "meta.json"))
+        ? (JSON.parse(readFileSync(join(srcDir, "meta.json"), "utf-8")) as Record<string, unknown>)
+        : {};
+      const srcTitle = (srcMeta.title as string | undefined) ?? id;
+      const newTitle = `${srcTitle} (copy)`;
+      const slug = newTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40) || "project";
+      const suffix = Math.random().toString(36).slice(2, 6);
+      const newId = `${slug}-${suffix}`;
+      const destDir = join(dataDir, newId);
+      cpSync(srcDir, destDir, {
+        recursive: true,
+        filter: (src) => !src.includes(".thumbnails") && !src.includes(".waveform-cache"),
+      });
+      writeFileSync(
+        join(destDir, "meta.json"),
+        JSON.stringify({ ...srcMeta, title: newTitle, createdAt: new Date().toISOString() }),
+        "utf-8",
+      );
+      return { id: newId };
     },
 
     async deleteProject(id: string) {

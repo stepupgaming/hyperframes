@@ -8,6 +8,7 @@ import { registerRenderRoutes } from "./routes/render.js";
 import { registerThumbnailRoutes } from "./routes/thumbnail.js";
 import { registerWaveformRoutes } from "./routes/waveform.js";
 import { registerAiRoutes } from "./routes/ai.js";
+import { registerGenerateRoutes } from "./routes/generate.js";
 
 /**
  * Create a Hono sub-app with all studio API routes.
@@ -26,6 +27,7 @@ export function createStudioApi(adapter: StudioApiAdapter): Hono {
   registerThumbnailRoutes(api, adapter);
   registerWaveformRoutes(api, adapter);
   registerAiRoutes(api, adapter);
+  registerGenerateRoutes(api);
 
   return api;
 }

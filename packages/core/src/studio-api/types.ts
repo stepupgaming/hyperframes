@@ -91,7 +91,10 @@ export interface StudioApiAdapter {
   listTemplates?: () => Promise<TemplateInfo[]> | TemplateInfo[];
 
   /** Optional: create a new project from a template. Returns the new project ID. */
-  createProject?: (opts: { name: string; templateId: string; format?: string }) => Promise<{ id: string }>;
+  createProject?: (opts: { name: string; templateId: string; format?: string; description?: string }) => Promise<{ id: string }>;
+
+  /** Optional: duplicate an existing project. Returns the new project ID. */
+  duplicateProject?: (id: string) => Promise<{ id: string }>;
 
   /** Optional: delete a project and all its files by ID. */
   deleteProject?: (id: string) => Promise<void>;

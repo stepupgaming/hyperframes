@@ -1354,10 +1354,22 @@ export const Timeline = memo(function Timeline({
             })}
           </svg>
 
-          {/* Ruler */}
+          {/* Ruler — click or drag to seek */}
           <div
-            className="relative overflow-hidden"
+            className="relative overflow-hidden cursor-ew-resize select-none"
             style={{ height: RULER_H, marginLeft: GUTTER, width: trackContentWidth }}
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              const x = e.nativeEvent.offsetX;
+              const t = Math.max(0, Math.min(effectiveDuration, x / pps));
+              onSeek(t);
+            }}
+            onPointerMove={(e) => {
+              if (e.buttons !== 1) return;
+              const x = e.nativeEvent.offsetX;
+              const t = Math.max(0, Math.min(effectiveDuration, x / pps));
+              onSeek(t);
+            }}
           >
             {/* Shift hint */}
             {shiftHeld && !rangeSelection && (
