@@ -7,12 +7,17 @@ import {
   writeFileSync,
   lstatSync,
   realpathSync,
+  mkdirSync,
+  copyFileSync,
+  cpSync,
+  rmSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
 import type {
   StudioApiAdapter,
   ResolvedProject,
   RenderJobState,
+  TemplateInfo,
 } from "@hyperframes/core/studio-api";
 import { createRetryingModuleLoader, ensureProducerDist } from "./vite.producer";
 import { readNodeRequestBody } from "./vite.request-body.js";
@@ -328,6 +333,116 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
         /* ignore */
       }
       return null;
+    },
+
+    listTemplates(): TemplateInfo[] {
+      const registryDir = resolve(__dirname, "../../registry/examples");
+      const templates: TemplateInfo[] = [
+        {
+          id: "blank",
+          title: "Blank",
+          description: "Start from scratch with an empty canvas",
+          dimensions: { width: 1920, height: 1080 },
+          duration: 5,
+        },
+      ];
+      if (existsSync(registryDir)) {
+        for (const entry of readdirSync(registryDir, { withFileTypes: true })) {
+          if (!entry.isDirectory()) continue;
+          const itemPath = join(registryDir, entry.name, "registry-item.json");
+          if (!existsSync(itemPath)) continue;
+          try {
+            const item = JSON.parse(readFileSync(itemPath, "utf-8")) as {
+              title?: string;
+              description?: string;
+              dimensions?: { width: number; height: number };
+              duration?: number;
+            };
+            templates.push({
+              id: entry.name,
+              title: item.title ?? entry.name,
+              description: item.description ?? "",
+              dimensions: item.dimensions ?? { width: 1920, height: 1080 },
+              duration: item.duration ?? 10,
+            });
+          } catch {
+            /* skip corrupt items */
+          }
+        }
+      }
+      return templates;
+    },
+
+    async createProject({ name, templateId }: { name: string; templateId: string }) {
+      // Slugify the name into a URL-safe id
+      const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40) || "project";
+      const suffix = Math.random().toString(36).slice(2, 6);
+      const id = `${slug}-${suffix}`;
+      const projectDir = join(dataDir, id);
+      mkdirSync(projectDir, { recursive: true });
+
+      if (templateId === "blank" || !templateId) {
+        // Copy blank template from CLI package
+        const blankSrc = resolve(__dirname, "../cli/src/templates/blank/index.html");
+        const blankFallback = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+    ></div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>`;
+        if (existsSync(blankSrc)) {
+          copyFileSync(blankSrc, join(projectDir, "index.html"));
+        } else {
+          writeFileSync(join(projectDir, "index.html"), blankFallback, "utf-8");
+        }
+      } else {
+        // Copy from registry/examples/<templateId>/
+        const registrySrc = resolve(__dirname, "../../registry/examples", templateId);
+        if (existsSync(registrySrc)) {
+          cpSync(registrySrc, projectDir, { recursive: true });
+          // Remove registry metadata from the project copy
+          const registryItem = join(projectDir, "registry-item.json");
+          if (existsSync(registryItem)) {
+            rmSync(registryItem);
+          }
+        } else {
+          // Fallback: write blank
+          writeFileSync(join(projectDir, "index.html"), "<!doctype html><html><body></body></html>", "utf-8");
+        }
+      }
+
+      return { id };
+    },
+
+    async deleteProject(id: string) {
+      const projectDir = join(dataDir, id);
+      if (existsSync(projectDir)) {
+        rmSync(projectDir, { recursive: true, force: true });
+      }
     },
   };
 }

@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useMountEffect } from "./hooks/useMountEffect";
+import { HomeScreen } from "./components/home/HomeScreen";
 import { NLELayout } from "./components/nle/NLELayout";
 import { SourceEditor } from "./components/editor/SourceEditor";
 import { LeftSidebar } from "./components/sidebar/LeftSidebar";
@@ -121,6 +122,13 @@ async function resolveDroppedAssetDuration(
 export function StudioApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [resolving, setResolving] = useState(true);
+  const [showHome, setShowHome] = useState(false);
+
+  const openProject = useCallback((id: string) => {
+    setProjectId(id);
+    setShowHome(false);
+    window.location.hash = buildProjectHash(id);
+  }, []);
 
   useMountEffect(() => {
     const hashProjectId = parseProjectIdFromHash(window.location.hash);
@@ -129,18 +137,8 @@ export function StudioApp() {
       setResolving(false);
       return;
     }
-    // No hash — auto-select first available project
-    fetch("/api/projects")
-      .then((r) => r.json())
-      .then((data) => {
-        const first = (data.projects ?? [])[0];
-        if (first) {
-          setProjectId(first.id);
-          window.location.hash = buildProjectHash(first.id);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setResolving(false));
+    // No hash — show home screen (project list), don't auto-navigate
+    setResolving(false);
   });
 
   const [editingFile, setEditingFile] = useState<EditingFile | null>(null);
@@ -1395,12 +1393,16 @@ export function StudioApp() {
     [fileTree],
   );
 
-  if (resolving || !projectId) {
+  if (resolving) {
     return (
       <div className="h-full w-full bg-neutral-950 flex items-center justify-center">
         <div className="w-4 h-4 rounded-full bg-studio-accent animate-pulse" />
       </div>
     );
+  }
+
+  if (!projectId || showHome) {
+    return <HomeScreen onOpenProject={openProject} />;
   }
 
   // At this point projectId is guaranteed non-null (narrowed by the guard above)
@@ -1433,8 +1435,24 @@ export function StudioApp() {
     >
       {/* Header bar */}
       <div className="flex items-center justify-between h-10 px-3 bg-neutral-900 border-b border-neutral-800 flex-shrink-0">
-        {/* Left: project name */}
+        {/* Left: back button + project name */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShowHome(true);
+              window.location.hash = "";
+            }}
+            className="h-6 flex items-center gap-1 px-2 rounded text-[10px] font-medium text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 transition-colors"
+            title="Back to projects"
+            aria-label="Back to projects"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            Projects
+          </button>
+          <span className="text-neutral-700 text-[11px]">/</span>
           <span className="text-[11px] font-medium text-neutral-400">{projectId}</span>
         </div>
         {/* Right: toolbar buttons */}

@@ -1,3 +1,12 @@
+/** Template metadata for new project creation. */
+export interface TemplateInfo {
+  id: string;
+  title: string;
+  description: string;
+  dimensions: { width: number; height: number };
+  duration: number;
+}
+
 /** Resolved info about a single project. */
 export interface ResolvedProject {
   id: string;
@@ -77,4 +86,13 @@ export interface StudioApiAdapter {
 
   /** Optional: resolve session ID to project (multi-project mode). */
   resolveSession?: (sessionId: string) => Promise<{ projectId: string; title: string } | null>;
+
+  /** Optional: list available templates for new project creation. */
+  listTemplates?: () => Promise<TemplateInfo[]> | TemplateInfo[];
+
+  /** Optional: create a new project from a template. Returns the new project ID. */
+  createProject?: (opts: { name: string; templateId: string }) => Promise<{ id: string }>;
+
+  /** Optional: delete a project and all its files by ID. */
+  deleteProject?: (id: string) => Promise<void>;
 }
