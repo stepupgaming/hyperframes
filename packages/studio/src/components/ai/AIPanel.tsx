@@ -76,6 +76,7 @@ const TOOL_LABELS: Record<string, string> = {
   write_file: "Writing",
   delete_file: "Deleting",
   screenshot_preview: "Screenshot",
+  view_asset: "Viewing asset",
 };
 
 function toolLabel(name: string, args: string): string {
@@ -326,25 +327,26 @@ export function AIPanel({ projectId, onFileWritten, initialMessage }: AIPanelPro
 
         if (wroteFiles) onFileWritten?.();
 
-        // Add tool result messages (screenshots use a text placeholder)
+        // Add tool result messages (vision results use a text placeholder)
+        const VISION_TOOLS = new Set(["screenshot_preview", "view_asset"]);
         for (const { tc, result } of toolResults) {
-          const isScreenshot =
-            tc.function.name === "screenshot_preview" && result.startsWith("data:image/");
+          const isVision =
+            VISION_TOOLS.has(tc.function.name) && result.startsWith("data:image/");
           updatedMsgs = [
             ...updatedMsgs,
             {
               role: "tool" as const,
               tool_call_id: tc.id,
               name: tc.function.name,
-              content: isScreenshot ? "Screenshot captured." : result,
+              content: isVision ? "Image captured." : result,
             },
           ];
         }
 
-        // Inject vision user messages for screenshots (AFTER all tool results)
+        // Inject vision user messages for image results (AFTER all tool results)
         const screenshots = toolResults.filter(
           ({ tc, result }) =>
-            tc.function.name === "screenshot_preview" && result.startsWith("data:image/"),
+            VISION_TOOLS.has(tc.function.name) && result.startsWith("data:image/"),
         );
         if (screenshots.length > 0) {
           updatedMsgs = [
@@ -551,8 +553,8 @@ export function AIPanel({ projectId, onFileWritten, initialMessage }: AIPanelPro
                       <span className="text-[11px] text-neutral-400 font-mono">
                         {toolLabel(tc.name, tc.args)}
                       </span>
-                      {/* Show screenshot inline */}
-                      {tc.name === "screenshot_preview" &&
+                      {/* Show image inline (screenshot or viewed asset) */}
+                      {(tc.name === "screenshot_preview" || tc.name === "view_asset") &&
                         tc.result?.startsWith("data:image/") && (
                           <img
                             src={tc.result}

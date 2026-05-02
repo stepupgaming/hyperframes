@@ -94,7 +94,7 @@ export function GenerateAssetPanel({ projectId, onClose, onAssetGenerated }: Gen
       const formData = new FormData();
       formData.append("file", blob, filename);
 
-      const res = await fetch(`/api/projects/${projectId}/upload?path=assets/`, {
+      const res = await fetch(`/api/projects/${projectId}/upload?dir=assets`, {
         method: "POST",
         body: formData,
       });

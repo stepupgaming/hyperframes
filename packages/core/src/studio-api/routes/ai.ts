@@ -129,8 +129,9 @@ This project is LANDSCAPE (${w}×${h}).
 2. Read any existing files you'll modify (\`read_file\`)
 3. Write complete files — never partial diffs (\`write_file\`)
 4. Clean up old files if restructuring (\`delete_file\`)
-5. Use \`screenshot_preview\` to visually verify the result after writing
-6. When done, briefly describe what was built
+5. Use \`view_asset(path)\` to see what an uploaded image looks like before using it
+6. Use \`screenshot_preview\` to visually verify the composition after writing
+7. When done, briefly describe what was built
 
 ## Quality bar
 - Produce visually striking results: use bold typography, color contrast, smooth easing
@@ -221,6 +222,24 @@ const TOOLS = [
           },
         },
         required: [],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "view_asset",
+      description:
+        "View an image asset in the project. Returns the image as base64 so you can see what it looks like. Use this to inspect uploaded or generated images in the assets/ folder before referencing them in a composition.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Relative path to the image file within the project (e.g. 'assets/photo.jpg')",
+          },
+        },
+        required: ["path"],
       },
     },
   },
@@ -328,11 +347,56 @@ export function registerAiRoutes(api: Hono, adapter: StudioApiAdapter): void {
           return c.json({ result: `File not found: ${rel}` });
         }
 
+        // Detect binary file types — return a helpful hint instead of garbled bytes
+        const BINARY_EXTS = new Set([
+          "png", "jpg", "jpeg", "gif", "webp", "avif", "svg",
+          "mp4", "webm", "mov", "mkv", "avi",
+          "mp3", "wav", "ogg", "aac", "m4a",
+          "woff", "woff2", "ttf", "otf", "eot",
+          "pdf", "zip",
+        ]);
+        const ext = abs.split(".").pop()?.toLowerCase() ?? "";
+        if (BINARY_EXTS.has(ext)) {
+          const imgExts = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif"]);
+          const hint = imgExts.has(ext)
+            ? `This is a binary image file (${ext}). Use view_asset("${rel}") to see it visually, or reference it in your HTML as src="${rel}".`
+            : `This is a binary file (${ext}) — it cannot be read as text. Reference it by path in your HTML.`;
+          return c.json({ result: hint });
+        }
+
         try {
           const content = readFileSync(abs, "utf-8");
           return c.json({ result: content });
         } catch (err) {
           return c.json({ result: `Error reading file: ${String(err)}` });
+        }
+      }
+
+      case "view_asset": {
+        const rel = body.args.path;
+        if (!rel) return c.json({ error: "path required" }, 400);
+
+        const abs = resolve(join(projectDir, rel));
+        if (!isSafePath(projectDir, abs)) return c.json({ result: "Path outside project" });
+        if (!existsSync(abs)) return c.json({ result: `File not found: ${rel}` });
+
+        const MIME: Record<string, string> = {
+          png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
+          gif: "image/gif", webp: "image/webp", avif: "image/avif",
+          svg: "image/svg+xml",
+        };
+        const ext = abs.split(".").pop()?.toLowerCase() ?? "";
+        const mime = MIME[ext];
+        if (!mime) {
+          return c.json({ result: `view_asset only supports images. "${rel}" is a ${ext} file — reference it by path instead.` });
+        }
+
+        try {
+          const buf = readFileSync(abs);
+          const b64 = buf.toString("base64");
+          return c.json({ result: `data:${mime};base64,${b64}` });
+        } catch (err) {
+          return c.json({ result: `Error reading asset: ${String(err)}` });
         }
       }
 
