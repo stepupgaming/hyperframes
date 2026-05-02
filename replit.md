@@ -71,6 +71,43 @@ The studio is fully self-contained: no CLI is needed for any user action. Everyt
 - "← Projects" back button in editor header returns to Home
 - `App.tsx` key state: `showHome` + `openProject(id)` callback
 
+## AI Agent (`packages/studio/src/components/ai/`)
+
+An embedded AI coding assistant that can read and write project files directly.
+
+### Components
+- **AIPanel.tsx** — Chat UI with streaming token display, inline tool-call visualization, agentic loop
+- **AISettings.tsx** — Settings modal (base URL, API key, model); persisted in `localStorage` as `hf-ai-config`
+
+### How it works
+1. User clicks **AI** button in the editor toolbar → `AIPanel` slides in as a right-side overlay (360px wide, z-index 30)
+2. User types a message → Panel calls `POST /api/ai/stream` which proxies the request to the configured OpenAI-compatible provider, injecting the HyperFrames system prompt + current project file list
+3. Client reads the raw OpenAI SSE stream, accumulates text and tool-call deltas
+4. When `finish_reason == "tool_calls"`, client calls `POST /api/ai/tool` for each tool, then loops back
+5. When a `write_file` tool completes, `onFileWritten()` fires → `setRefreshKey` reloads the preview
+6. The conversation history is kept in component state (messages cleared by "Clear" button)
+
+### API routes (`packages/core/src/studio-api/routes/ai.ts`)
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/api/ai/stream` | Proxy streaming ChatCompletion to any OpenAI-compatible endpoint |
+| POST | `/api/ai/tool` | Execute a file tool (list_files / read_file / write_file) with path-safety checks |
+
+### Agent tools
+- `list_files` — returns the project's file list as JSON
+- `read_file(path)` — reads a project file; path must stay within project dir (`isSafePath`)
+- `write_file(path, content)` — writes a complete file; creates parent dirs automatically
+
+### Supported providers (any OpenAI-compatible)
+- OpenAI (`https://api.openai.com/v1`)
+- Groq (`https://api.groq.com/openai/v1`)
+- OpenRouter (`https://openrouter.ai/api/v1`)
+- Ollama (`http://localhost:11434/v1`)
+- LM Studio, Together AI, Fireworks, etc.
+
+### System prompt
+Injected server-side into every request. Covers: composition HTML structure, data attributes, GSAP `window.__timelines` pattern, CSS variables, available CDN libraries, and 6 coding rules.
+
 ## Optional Environment Variables
 
 - `GEMINI_API_KEY` — AI image captioning during website capture (~$0.001/image)

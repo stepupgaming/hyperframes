@@ -52,6 +52,7 @@ import {
 import { buildFrameCaptureFilename, buildFrameCaptureUrl } from "./utils/frameCapture";
 import { buildProjectHash, parseProjectIdFromHash } from "./utils/projectRouting";
 import { Camera } from "./icons/SystemIcons";
+import { AIPanel } from "./components/ai/AIPanel";
 
 interface EditingFile {
   path: string;
@@ -123,6 +124,7 @@ export function StudioApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [resolving, setResolving] = useState(true);
   const [showHome, setShowHome] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
 
   const openProject = useCallback((id: string) => {
     setProjectId(id);
@@ -1492,6 +1494,27 @@ export function StudioApp() {
             Renders
             {renderQueue.jobs.length > 0 ? ` (${renderQueue.jobs.length})` : ""}
           </button>
+          <button
+            onClick={() => setShowAiPanel((v) => !v)}
+            className={`h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-medium border transition-colors ${
+              showAiPanel
+                ? "text-studio-accent bg-studio-accent/10 border-studio-accent/30"
+                : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 border-transparent"
+            }`}
+            title="Toggle AI agent"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            AI
+          </button>
         </div>
       </div>
 
@@ -1710,6 +1733,19 @@ export function StudioApp() {
           </>
         )}
       </div>
+
+      {/* AI Panel — absolute overlay on the right, below the header */}
+      {showAiPanel && projectId && (
+        <div
+          className="absolute right-0 bottom-0 w-[360px] z-30 flex flex-col border-l border-neutral-800 bg-neutral-950 shadow-2xl"
+          style={{ top: 40 }}
+        >
+          <AIPanel
+            projectId={projectId}
+            onFileWritten={() => setRefreshKey((k) => k + 1)}
+          />
+        </div>
+      )}
 
       {/* Lint modal */}
       {lintModal !== null && projectId && (
