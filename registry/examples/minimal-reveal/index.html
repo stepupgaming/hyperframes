@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Minimal Reveal</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #f5f4f0; }
+
+    .rule-h {
+      position: absolute; left: 0; top: 50%; width: 0; height: 1px;
+      background: #1a1a1a; margin-top: -0.5px;
+    }
+    .accent-bar {
+      position: absolute; right: 220px; top: 0; width: 5px; height: 0;
+      background: #1a1a1a;
+    }
+    .logo-mark {
+      position: absolute; top: 120px; left: 160px;
+      width: 52px; height: 52px; border: 2px solid #1a1a1a;
+      transform: scale(0) rotate(45deg);
+    }
+    .content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      padding: 0 160px 140px 160px; justify-content: flex-end;
+    }
+    .clip { overflow: hidden; }
+    .label {
+      font-family: "DM Sans", sans-serif; font-size: 18px; font-weight: 500;
+      letter-spacing: 0.3em; color: #888; text-transform: uppercase;
+      transform: translateY(110%); display: block; margin-bottom: 20px;
+    }
+    .big {
+      font-family: "DM Serif Display", serif; font-size: 210px; line-height: 0.88;
+      color: #1a1a1a; transform: translateY(110%); display: block;
+    }
+    .big em { font-style: italic; color: #777; }
+    .tagline {
+      font-family: "DM Sans", sans-serif; font-size: 26px; font-weight: 300;
+      color: #666; letter-spacing: 0.06em;
+      transform: translateY(110%); display: block; margin-top: 48px;
+    }
+    .num {
+      position: absolute; top: 120px; right: 160px;
+      font-family: "DM Serif Display", serif; font-size: 320px; font-weight: 400;
+      color: #ece9e1; line-height: 1; opacity: 0; user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+    <div class="num" id="num">01</div>
+    <div class="rule-h" id="rule"></div>
+    <div class="accent-bar" id="accent"></div>
+    <div class="logo-mark" id="logo"></div>
+
+    <div class="content">
+      <div class="clip"><span class="label" id="lbl">Studio Presentation — 2024</span></div>
+      <div class="clip"><span class="big" id="b1">Less is</span></div>
+      <div class="clip"><span class="big" id="b2"><em>always</em> more.</span></div>
+      <div class="clip"><span class="tagline" id="tag">Where clarity meets craft.</span></div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#logo", { scale: 1, rotation: 45, duration: 0.7, ease: "back.out(2)" }, 0.2);
+        tl.to("#num", { opacity: 1, duration: 1.2, ease: "power2.out" }, 0.4);
+        tl.to("#accent", { height: 380, duration: 0.9, ease: "power3.out" }, 0.6);
+        tl.to("#rule", { width: "100%", duration: 1.4, ease: "power4.out" }, 0.9);
+        tl.to("#lbl", { y: 0, duration: 0.7, ease: "power3.out" }, 1.4);
+        tl.to("#b1", { y: 0, duration: 0.95, ease: "power3.out" }, 1.9);
+        tl.to("#b2", { y: 0, duration: 0.95, ease: "power3.out" }, 2.25);
+        tl.to("#tag", { y: 0, duration: 0.8, ease: "power3.out" }, 3.0);
+        tl.to("#num", { opacity: 0, duration: 2, ease: "power2.in" }, 9.0);
+      })();
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Split Reveal</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;500&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0c1018; }
+
+    .panel {
+      position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .panel-left  { left: 0;   background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
+    .panel-right { right: 0;  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+
+    .panel-content {
+      position: relative; text-align: center;
+      opacity: 0; transform: scale(0.85);
+    }
+    .panel-num {
+      font-family: "Bebas Neue", sans-serif; font-size: 320px; line-height: 1;
+      color: rgba(255,255,255,0.06);
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      white-space: nowrap; pointer-events: none;
+    }
+    .panel-label {
+      font-family: "Inter", sans-serif; font-size: 16px; font-weight: 500;
+      letter-spacing: 0.4em; color: rgba(255,255,255,0.4); text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .panel-heading {
+      font-family: "Bebas Neue", sans-serif; font-size: 140px; line-height: 0.9;
+      color: #fff; letter-spacing: 0.04em;
+    }
+    .panel-left .panel-heading  { color: #f97316; text-shadow: 0 0 60px rgba(249,115,22,0.4); }
+    .panel-right .panel-heading { color: #60a5fa; text-shadow: 0 0 60px rgba(96,165,250,0.4); }
+
+    .curtain {
+      position: absolute; top: 0; bottom: 0; width: 50%;
+      background: #0c1018; z-index: 10;
+    }
+    .curtain-left  { left: 0;  transform-origin: left center; }
+    .curtain-right { right: 0; transform-origin: right center; }
+
+    .center-reveal {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+      opacity: 0;
+    }
+    .center-line { width: 0; height: 2px; background: #fff; }
+    .center-text {
+      font-family: "Bebas Neue", sans-serif; font-size: 200px; line-height: 0.9;
+      color: #fff; text-align: center; letter-spacing: 0.06em;
+      text-shadow: 0 0 80px rgba(255,255,255,0.3);
+      opacity: 0; transform: scale(1.1);
+    }
+    .center-sub {
+      font-family: "Inter", sans-serif; font-size: 24px; font-weight: 300;
+      letter-spacing: 0.3em; color: rgba(255,255,255,0.5); text-transform: uppercase;
+      opacity: 0; transform: translateY(16px);
+    }
+    .divider-v {
+      position: absolute; top: 0; bottom: 0; left: 50%;
+      width: 2px; background: rgba(255,255,255,0.08);
+      transform: translateX(-50%); z-index: 4;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+    <div class="panel panel-left">
+      <div class="panel-num">A</div>
+      <div class="panel-content" id="pcL">
+        <div class="panel-label">Before</div>
+        <div class="panel-heading">The Old<br/>Way</div>
+      </div>
+    </div>
+    <div class="panel panel-right">
+      <div class="panel-num">B</div>
+      <div class="panel-content" id="pcR">
+        <div class="panel-label">After</div>
+        <div class="panel-heading">The New<br/>Era</div>
+      </div>
+    </div>
+
+    <div class="divider-v"></div>
+    <div class="curtain curtain-left"  id="cL"></div>
+    <div class="curtain curtain-right" id="cR"></div>
+
+    <div class="center-reveal" id="cr">
+      <div class="center-line" id="cl1"></div>
+      <div class="center-text" id="ct">TOGETHER</div>
+      <div class="center-sub" id="cs">One vision. Infinite possibilities.</div>
+      <div class="center-line" id="cl2"></div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        // Curtains open
+        tl.to("#cL", { scaleX: 0, duration: 1.2, ease: "power4.inOut" }, 0.5);
+        tl.to("#cR", { scaleX: 0, duration: 1.2, ease: "power4.inOut" }, 0.5);
+
+        // Panels animate in
+        tl.to(["#pcL","#pcR"], { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out", stagger: 0.15 }, 1.3);
+
+        // Hold, then split
+        tl.to("#pcL", { x: -160, opacity: 0, duration: 0.8, ease: "power3.in" }, 4.0);
+        tl.to("#pcR", { x: 160, opacity: 0, duration: 0.8, ease: "power3.in" }, 4.0);
+
+        // Center reveal
+        tl.to("#cr", { opacity: 1, duration: 0.1 }, 4.5);
+        tl.to(["#cl1","#cl2"], { width: 700, duration: 0.8, ease: "power3.out" }, 4.5);
+        tl.to("#ct", { opacity: 1, scale: 1, duration: 0.9, ease: "power3.out" }, 4.8);
+        tl.to("#cs", { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 5.4);
+
+        // Pulse glow on center text
+        tl.to("#ct", { textShadow: "0 0 160px rgba(255,255,255,0.6)", duration: 1.5, yoyo: true, repeat: -1, ease: "sine.inOut" }, 6);
+      })();
+    </script>
+  </div>
+</body>
+</html>

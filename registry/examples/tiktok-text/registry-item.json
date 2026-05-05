@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "tiktok-text",
+  "type": "hyperframes:example",
+  "title": "TikTok Text",
+  "description": "Bold word-by-word caption pop in TikTok style",
+  "dimensions": { "width": 1080, "height": 1920 },
+  "duration": 12,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

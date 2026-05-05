@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "social-card",
+  "type": "hyperframes:example",
+  "title": "Social Card",
+  "description": "Stylish announcement card for social media drops",
+  "dimensions": { "width": 1920, "height": 1080 },
+  "duration": 12,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

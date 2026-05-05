@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Neon Pulse</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050510; }
+
+    .grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,255,0.06) 1px, transparent 1px);
+      background-size: 96px 96px;
+      opacity: 0;
+    }
+    .scanlines {
+      position: absolute; inset: 0; pointer-events: none; z-index: 20;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
+    }
+    .bar { position: absolute; top: 0; width: 3px; height: 0; }
+    .bar-l { left: 140px; background: linear-gradient(to bottom, #00ffff, #ff0066); box-shadow: 0 0 16px #00ffff; }
+    .bar-r { right: 140px; background: linear-gradient(to bottom, #ff0066, #00ffff); box-shadow: 0 0 16px #ff0066; }
+
+    .corner { position: absolute; width: 56px; height: 56px; opacity: 0; }
+    .c-tl { top: 72px; left: 72px; border-top: 2px solid #00ffff; border-left: 2px solid #00ffff; box-shadow: -4px -4px 12px #00ffff44; }
+    .c-tr { top: 72px; right: 72px; border-top: 2px solid #00ffff; border-right: 2px solid #00ffff; box-shadow: 4px -4px 12px #00ffff44; }
+    .c-bl { bottom: 72px; left: 72px; border-bottom: 2px solid #ff0066; border-left: 2px solid #ff0066; box-shadow: -4px 4px 12px #ff006644; }
+    .c-br { bottom: 72px; right: 72px; border-bottom: 2px solid #ff0066; border-right: 2px solid #ff0066; box-shadow: 4px 4px 12px #ff006644; }
+
+    .center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px;
+    }
+    .eyebrow {
+      font-family: "Orbitron", monospace; font-size: 24px; font-weight: 400;
+      letter-spacing: 0.6em; color: #00ffff; text-transform: uppercase;
+      opacity: 0; transform: translateY(20px);
+    }
+    .headline {
+      font-family: "Orbitron", monospace; font-size: 180px; font-weight: 900;
+      line-height: 0.9; color: #fff; text-align: center;
+      text-shadow: 0 0 40px #ff0066, 0 0 100px #ff006688;
+      clip-path: inset(0 100% 0 0);
+    }
+    .sub {
+      font-family: "Orbitron", monospace; font-size: 32px; font-weight: 700;
+      letter-spacing: 0.4em; color: #ff0066;
+      text-shadow: 0 0 20px #ff0066, 0 0 60px #ff006644;
+      opacity: 0;
+    }
+    .ring {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(255,0,102,0.35);
+      left: 50%; top: 50%; transform: translate(-50%,-50%);
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+    <div class="grid" id="grid"></div>
+    <div class="scanlines"></div>
+
+    <div class="ring" id="r1" style="width:160px;height:160px;"></div>
+    <div class="ring" id="r2" style="width:320px;height:320px;"></div>
+    <div class="ring" id="r3" style="width:560px;height:560px;"></div>
+
+    <div class="bar bar-l" id="barL"></div>
+    <div class="bar bar-r" id="barR"></div>
+    <div class="corner c-tl" id="cTL"></div>
+    <div class="corner c-tr" id="cTR"></div>
+    <div class="corner c-bl" id="cBL"></div>
+    <div class="corner c-br" id="cBR"></div>
+
+    <div class="center">
+      <div class="eyebrow" id="eyebrow">[ System Online ]</div>
+      <div class="headline" id="headline">NEON<br/>PULSE</div>
+      <div class="sub" id="sub">Initialize Sequence</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#grid", { opacity: 1, duration: 2, ease: "power2.out" }, 0);
+        tl.to(["#cTL","#cTR","#cBL","#cBR"], { opacity: 1, duration: 0.3, stagger: 0.08 }, 0.4);
+        tl.to(["#barL","#barR"], { height: "100%", duration: 1.4, ease: "power4.out", stagger: 0.12 }, 0.6);
+        tl.to("#eyebrow", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 1.4);
+        tl.to("#headline", { clipPath: "inset(0 0% 0 0)", duration: 1.4, ease: "power4.out" }, 2.0);
+        tl.to("#sub", { opacity: 1, duration: 0.8, ease: "power2.out" }, 3.0);
+        tl.to(["#r1","#r2","#r3"], {
+          scale: 5, opacity: 0, duration: 3.5, ease: "power1.out",
+          stagger: 0.5, repeat: -1, repeatDelay: 0.2
+        }, 3.5);
+        tl.to("#headline", {
+          textShadow: "0 0 60px #ff0066, 0 0 160px #ff006688, 0 0 300px #ff006633",
+          duration: 1.2, yoyo: true, repeat: -1, ease: "sine.inOut"
+        }, 4.5);
+      })();
+    </script>
+  </div>
+</body>
+</html>

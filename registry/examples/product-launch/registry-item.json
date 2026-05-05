@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "product-launch",
+  "type": "hyperframes:example",
+  "title": "Product Launch",
+  "description": "Dark premium product drop with spotlight and reveal",
+  "dimensions": { "width": 1920, "height": 1080 },
+  "duration": 14,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

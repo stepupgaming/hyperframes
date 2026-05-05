@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "neon-pulse",
+  "type": "hyperframes:example",
+  "title": "Neon Pulse",
+  "description": "Cyberpunk neon glow with animated grid and scanlines",
+  "dimensions": { "width": 1920, "height": 1080 },
+  "duration": 15,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

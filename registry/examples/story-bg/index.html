@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <title>Story Slide</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,600;0,800;1,400&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0e0e1a; font-family: "Poppins", sans-serif; }
+
+    .bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 900px 1200px at 20% 0%, #2d1b69 0%, transparent 60%),
+        radial-gradient(ellipse 700px 900px at 90% 100%, #1a0d3d 0%, transparent 60%),
+        radial-gradient(ellipse 600px 600px at 70% 40%, rgba(124,58,237,0.25) 0%, transparent 50%),
+        #0e0e1a;
+    }
+    .dots {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .progress-dots {
+      position: absolute; top: 80px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 12px; opacity: 0;
+    }
+    .pdot { width: 60px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); overflow: hidden; }
+    .pdot-fill { height: 100%; width: 0; background: #fff; border-radius: 3px; }
+
+    .main-content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; padding: 0 80px;
+      justify-content: center; gap: 0;
+    }
+    .card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 32px; padding: 56px 64px;
+      backdrop-filter: blur(12px);
+      opacity: 0; transform: translateY(60px);
+    }
+    .card-emoji { font-size: 80px; line-height: 1; margin-bottom: 28px; display: block; }
+    .card-label {
+      font-size: 28px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); margin-bottom: 20px;
+    }
+    .card-title { font-size: 80px; font-weight: 800; line-height: 1.0; color: #fff; margin-bottom: 20px; }
+    .card-body { font-size: 40px; font-weight: 300; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+    .bottom-bar {
+      position: absolute; bottom: 100px; left: 80px; right: 80px;
+      display: flex; align-items: center; justify-content: space-between;
+      opacity: 0;
+    }
+    .handle {
+      font-size: 36px; font-weight: 600; color: rgba(255,255,255,0.5);
+    }
+    .cta-pill {
+      padding: 20px 48px; border-radius: 999px;
+      background: #7c3aed; font-size: 36px; font-weight: 600; color: #fff;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1920">
+    <div class="bg"></div>
+    <div class="dots"></div>
+
+    <div class="progress-dots" id="pdots">
+      <div class="pdot"><div class="pdot-fill" id="pf1"></div></div>
+      <div class="pdot"><div class="pdot-fill" id="pf2"></div></div>
+      <div class="pdot"><div class="pdot-fill" id="pf3"></div></div>
+    </div>
+
+    <div class="main-content">
+      <div class="card" id="card">
+        <span class="card-emoji">✨</span>
+        <div class="card-label">This week's tip</div>
+        <div class="card-title">Less noise.<br/>More signal.</div>
+        <div class="card-body">Cut through the clutter and focus on what actually moves the needle for your audience.</div>
+      </div>
+    </div>
+
+    <div class="bottom-bar" id="bot">
+      <div class="handle">@yourbrand</div>
+      <div class="cta-pill">Follow 🚀</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#pdots", { opacity: 1, duration: 0.4 }, 0.3);
+        tl.to("#pf1", { width: "100%", duration: 4, ease: "none" }, 0.5);
+        tl.to("#pf2", { width: "100%", duration: 4, ease: "none" }, 4.5);
+        tl.to("#pf3", { width: "100%", duration: 3, ease: "none" }, 8.5);
+
+        tl.to("#card", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.6);
+        tl.to("#bot", { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.4);
+
+        // Card swap at 4.5s
+        tl.to("#card", { opacity: 0, y: -40, duration: 0.4, ease: "power3.in" }, 4.2);
+        tl.set("#card", {
+          innerHTML: `<span class="card-emoji">🎯</span><div class="card-label">Key insight</div><div class="card-title">Your audience wants results.</div><div class="card-body">Show don't tell. Data, before/afters, and real stories convert 3× better than claims.</div>`,
+          y: 60, opacity: 0
+        }, 4.5);
+        tl.to("#card", { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 4.6);
+
+        // Card swap at 8.5s
+        tl.to("#card", { opacity: 0, y: -40, duration: 0.4, ease: "power3.in" }, 8.2);
+        tl.set("#card", {
+          innerHTML: `<span class="card-emoji">💡</span><div class="card-label">Action step</div><div class="card-title">Post consistently.</div><div class="card-body">The algorithm rewards creators who show up. One great post every day beats one perfect post per month.</div>`,
+          y: 60, opacity: 0
+        }, 8.5);
+        tl.to("#card", { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 8.6);
+      })();
+    </script>
+  </div>
+</body>
+</html>

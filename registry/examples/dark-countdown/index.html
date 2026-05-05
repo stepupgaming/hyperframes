@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Dark Countdown</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #020910; font-family: "Rajdhani", sans-serif; }
+
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .radial {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 1400px 900px at 50% 50%, rgba(16,185,129,0.08) 0%, transparent 70%);
+    }
+    .vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, #020910 100%);
+    }
+
+    .header {
+      position: absolute; top: 100px; left: 0; right: 0; text-align: center;
+      opacity: 0; transform: translateY(-20px);
+    }
+    .header-label {
+      font-family: "Share Tech Mono", monospace; font-size: 20px;
+      color: #10b981; letter-spacing: 0.3em; text-transform: uppercase;
+    }
+    .header-title {
+      font-size: 44px; font-weight: 700; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.1em; margin-top: 12px;
+    }
+
+    .digits-wrap {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+    }
+    .unit { text-align: center; opacity: 0; transform: translateY(40px); }
+    .digit-box {
+      background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 16px; padding: 32px 40px; position: relative; overflow: hidden;
+    }
+    .digit-box::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0;
+      height: 1px; background: linear-gradient(90deg, transparent, #10b981, transparent);
+    }
+    .digit {
+      font-family: "Share Tech Mono", monospace; font-size: 220px; font-weight: 400;
+      color: #10b981; line-height: 1;
+      text-shadow: 0 0 40px rgba(16,185,129,0.6), 0 0 80px rgba(16,185,129,0.3);
+    }
+    .unit-label {
+      font-family: "Rajdhani", sans-serif; font-size: 22px; font-weight: 500;
+      color: rgba(255,255,255,0.35); letter-spacing: 0.3em; text-transform: uppercase;
+      margin-top: 16px;
+    }
+    .sep {
+      font-family: "Share Tech Mono", monospace; font-size: 160px; font-weight: 400;
+      color: rgba(16,185,129,0.35); align-self: center; margin-top: -80px;
+      opacity: 0;
+    }
+
+    .footer {
+      position: absolute; bottom: 80px; left: 0; right: 0; text-align: center;
+      opacity: 0; transform: translateY(20px);
+    }
+    .footer-text {
+      font-size: 28px; font-weight: 500; color: rgba(255,255,255,0.35);
+      letter-spacing: 0.25em; text-transform: uppercase;
+    }
+
+    .particle { position: absolute; border-radius: 50%; pointer-events: none; opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+    <div class="bg-grid"></div>
+    <div class="radial"></div>
+    <div class="vignette"></div>
+
+    <div class="header" id="hdr">
+      <div class="header-label">&#9632; Event Begins In</div>
+      <div class="header-title">The Wait Is Almost Over</div>
+    </div>
+
+    <div class="digits-wrap">
+      <div class="unit" id="u1">
+        <div class="digit-box"><div class="digit" id="d1">03</div></div>
+        <div class="unit-label">Days</div>
+      </div>
+      <div class="sep" id="sep1">:</div>
+      <div class="unit" id="u2">
+        <div class="digit-box"><div class="digit" id="d2">14</div></div>
+        <div class="unit-label">Hours</div>
+      </div>
+      <div class="sep" id="sep2">:</div>
+      <div class="unit" id="u3">
+        <div class="digit-box"><div class="digit" id="d3">27</div></div>
+        <div class="unit-label">Minutes</div>
+      </div>
+      <div class="sep" id="sep3">:</div>
+      <div class="unit" id="u4">
+        <div class="digit-box"><div class="digit" id="d4">00</div></div>
+        <div class="unit-label">Seconds</div>
+      </div>
+    </div>
+
+    <div class="footer" id="ftr">
+      <div class="footer-text">January 24, 2025 &nbsp;&bull;&nbsp; Live Event</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#hdr", { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.4);
+        tl.to(["#u1","#u2","#u3","#u4"], { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.15 }, 1.0);
+        tl.to(["#sep1","#sep2","#sep3"], { opacity: 1, duration: 0.5, stagger: 0.1 }, 1.6);
+        tl.to("#ftr", { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 2.2);
+
+        // Seconds countdown
+        let secs = 0;
+        const d4 = document.getElementById("d4");
+        tl.to({}, {
+          duration: 10, ease: "none", repeat: 0,
+          onUpdate() {
+            const s = Math.min(59, Math.floor(this.progress() * 60));
+            if (d4) d4.textContent = String(s).padStart(2, "0");
+          }
+        }, 3.0);
+
+        // Digit glow pulse
+        tl.to(["#d1","#d2","#d3","#d4"], {
+          textShadow: "0 0 80px rgba(16,185,129,0.9), 0 0 160px rgba(16,185,129,0.5)",
+          duration: 1.2, yoyo: true, repeat: -1, ease: "sine.inOut", stagger: 0.3
+        }, 3.5);
+      })();
+    </script>
+  </div>
+</body>
+</html>

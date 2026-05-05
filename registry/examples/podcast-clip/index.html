@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Podcast Clip</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Inter:wght@300;400;600&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0d0d0d; font-family: "Inter", sans-serif; }
+
+    .bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 1400px 600px at 50% 100%, rgba(234,179,8,0.06) 0%, transparent 70%),
+        #0d0d0d;
+    }
+    .side-accent {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 0;
+      background: linear-gradient(to bottom, #eab308, #ca8a04);
+    }
+    .avatar {
+      position: absolute; left: 100px; top: 50%; transform: translate(0,-50%);
+      width: 280px; height: 280px; border-radius: 50%;
+      background: linear-gradient(135deg, #292524 0%, #1c1917 100%);
+      border: 3px solid rgba(234,179,8,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 120px; opacity: 0; transform: translate(0,-50%) scale(0.8);
+    }
+    .content {
+      position: absolute; left: 460px; right: 100px; top: 50%;
+      transform: translateY(-50%); opacity: 0;
+    }
+    .show-label {
+      font-size: 20px; font-weight: 600; letter-spacing: 0.3em;
+      color: #eab308; text-transform: uppercase; margin-bottom: 28px;
+    }
+    .quote {
+      font-family: "Lora", serif; font-size: 72px; font-weight: 600;
+      line-height: 1.25; color: #fff;
+    }
+    .quote em { font-style: italic; font-weight: 400; color: rgba(255,255,255,0.6); }
+    .speaker {
+      margin-top: 36px; display: flex; align-items: center; gap: 20px;
+    }
+    .speaker-rule { height: 2px; width: 48px; background: #eab308; }
+    .speaker-name { font-size: 26px; font-weight: 400; color: rgba(255,255,255,0.5); }
+
+    .waveform {
+      position: absolute; bottom: 120px; left: 460px; right: 100px; height: 80px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .bar-w {
+      flex: 1; border-radius: 2px;
+      background: rgba(234,179,8,0.25); transform-origin: 50% 100%;
+    }
+    .playhead {
+      position: absolute; bottom: 100px; left: 460px; height: 100px; width: 3px;
+      background: #eab308; box-shadow: 0 0 12px #eab308; opacity: 0;
+    }
+    .time {
+      position: absolute; bottom: 60px; left: 460px;
+      font-size: 22px; font-weight: 400; color: rgba(255,255,255,0.3);
+      letter-spacing: 0.1em; opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+    <div class="bg"></div>
+    <div class="side-accent" id="sa"></div>
+    <div class="avatar" id="av">🎙️</div>
+    <div class="content" id="cont">
+      <div class="show-label">The Creative Brief · Ep. 47</div>
+      <div class="quote">"The best ideas come from <em>constraints,</em> not freedom."</div>
+      <div class="speaker">
+        <div class="speaker-rule"></div>
+        <div class="speaker-name">Alex Rivera — Creative Director</div>
+      </div>
+    </div>
+
+    <div class="waveform" id="wave"></div>
+    <div class="playhead" id="ph"></div>
+    <div class="time" id="time">0:00 / 1:24</div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        // Build waveform
+        const wave = document.getElementById("wave");
+        const BARS = 120;
+        const bars = [];
+        for (let i = 0; i < BARS; i++) {
+          const b = document.createElement("div");
+          b.className = "bar-w";
+          const h = 12 + Math.random() * 68;
+          b.style.height = h + "px";
+          wave.appendChild(b);
+          bars.push(b);
+        }
+
+        tl.to("#sa", { width: 8, duration: 0.5, ease: "power4.out" }, 0.2);
+        tl.to("#av", { opacity: 1, scale: 1, duration: 0.8, ease: "back.out(2)" }, 0.5);
+        tl.to("#cont", { opacity: 1, duration: 0.9, ease: "power3.out" }, 1.0);
+        tl.to(bars, { scaleY: 1, opacity: 1, duration: 0.4, ease: "power3.out", stagger: { each: 0.006, from: "start" } }, 1.8);
+        tl.to("#ph", { opacity: 1, duration: 0.3 }, 2.0);
+        tl.to("#time", { opacity: 1, duration: 0.3 }, 2.1);
+
+        // Waveform animate
+        tl.to(bars, {
+          scaleY: () => 0.2 + Math.random() * 0.8,
+          duration: 0.25, stagger: { each: 0.004, from: "start", repeat: -1 },
+          ease: "none", repeat: -1
+        }, 2.5);
+
+        // Playhead scroll
+        const waveEl = document.getElementById("wave");
+        tl.to("#ph", { left: "100%", duration: 12, ease: "none" }, 2.5);
+
+        // Highlight played bars
+        const played = { p: 0 };
+        tl.to(played, {
+          p: BARS, duration: 12, ease: "none",
+          onUpdate() {
+            const n = Math.floor(played.p);
+            bars.forEach((b, i) => {
+              b.style.background = i < n ? "#eab308" : "rgba(234,179,8,0.25)";
+            });
+          }
+        }, 2.5);
+      })();
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-storm",
+  "type": "hyperframes:example",
+  "title": "Text Storm",
+  "description": "Words fly in from all sides and converge on a big message",
+  "dimensions": { "width": 1920, "height": 1080 },
+  "duration": 14,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

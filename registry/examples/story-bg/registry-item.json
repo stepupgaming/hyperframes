@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "story-bg",
+  "type": "hyperframes:example",
+  "title": "Story Slide",
+  "description": "Soft gradient Instagram story with animated text cards",
+  "dimensions": { "width": 1080, "height": 1920 },
+  "duration": 12,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

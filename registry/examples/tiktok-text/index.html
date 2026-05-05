@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <title>TikTok Text</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: #111; font-family: "Montserrat", sans-serif; }
+
+    .bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, #0d0d1a 0%, #111 60%, #1a0d0d 100%);
+    }
+    .word-stage {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .word {
+      position: absolute; font-size: 240px; font-weight: 900;
+      text-align: center; line-height: 1; letter-spacing: -0.03em;
+      color: #fff; opacity: 0; transform: scale(0.5);
+      padding: 0 60px;
+    }
+    .word.hl { color: #f72585; }
+    .word.hl2 { color: #7209b7; }
+    .word.hl3 { color: #4cc9f0; }
+
+    .caption-bar {
+      position: absolute; bottom: 240px; left: 60px; right: 60px;
+      background: rgba(0,0,0,0.7); border-radius: 24px; padding: 40px 50px;
+      opacity: 0;
+    }
+    .caption-text {
+      font-size: 56px; font-weight: 800; color: #fff;
+      line-height: 1.3; text-align: center;
+    }
+    .caption-text mark { background: #f72585; color: #fff; border-radius: 8px; padding: 0 12px; }
+
+    .progress-bar {
+      position: absolute; bottom: 0; left: 0; height: 8px;
+      background: linear-gradient(90deg, #f72585, #7209b7, #4cc9f0);
+      width: 0; border-radius: 0 4px 4px 0;
+    }
+
+    .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 10; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1920">
+    <div class="bg"></div>
+    <div class="flash" id="flash"></div>
+
+    <div class="word-stage">
+      <div class="word" id="w1">THIS</div>
+      <div class="word hl" id="w2">CHANGES</div>
+      <div class="word" id="w3">EVERY</div>
+      <div class="word hl2" id="w4">THING</div>
+      <div class="word hl3" id="w5">RIGHT NOW</div>
+      <div class="word" id="w6" style="font-size:140px">No seriously 👀</div>
+    </div>
+
+    <div class="caption-bar" id="cap">
+      <div class="caption-text">This is how you make content that <mark>stops the scroll.</mark></div>
+    </div>
+
+    <div class="progress-bar" id="prog"></div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        const DUR = 12;
+        tl.to("#prog", { width: "100%", duration: DUR, ease: "none" }, 0);
+
+        function pop(id, t, color) {
+          tl.to(id, { opacity: 1, scale: 1.15, duration: 0.1, ease: "power4.out" }, t);
+          tl.to(id, { scale: 1, duration: 0.12, ease: "power2.out" }, t + 0.1);
+          tl.to(id, { opacity: 0, scale: 0.85, duration: 0.12, ease: "power2.in" }, t + 0.72);
+          if (color) tl.to("body", { background: color, duration: 0.06, yoyo: true, repeat: 1 }, t);
+        }
+
+        pop("#w1", 0.2, null);
+        tl.to("#flash", { opacity: 0.15, duration: 0.06, yoyo: true, repeat: 1 }, 0.2);
+        pop("#w2", 1.1, null);
+        tl.to("#flash", { opacity: 0.15, duration: 0.06, yoyo: true, repeat: 1 }, 1.1);
+        pop("#w3", 2.0, null);
+        pop("#w4", 2.9, null);
+        tl.to("#flash", { opacity: 0.25, duration: 0.06, yoyo: true, repeat: 1 }, 2.9);
+        pop("#w5", 3.9, null);
+        tl.to("#flash", { opacity: 0.3, duration: 0.08, yoyo: true, repeat: 1 }, 3.9);
+        tl.to("#w6", { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, 5.0);
+        tl.to("#w6", { opacity: 0, duration: 0.3 }, 7.0);
+
+        tl.to("#cap", { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.5)" }, 7.5);
+
+        // shake on each pop
+        ["#w1","#w2","#w3","#w4","#w5"].forEach((w, i) => {
+          tl.fromTo(w, { rotation: -3 }, { rotation: 3, duration: 0.15, yoyo: true, repeat: 3, ease: "none" }, 0.2 + i * 0.9 + 0.1);
+        });
+      })();
+    </script>
+  </div>
+</body>
+</html>

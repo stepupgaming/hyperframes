@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <title>Reel Promo</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0a0a0a; font-family: "Plus Jakarta Sans", sans-serif; }
+
+    .hero {
+      position: absolute; top: 0; left: 0; right: 0; height: 960px;
+      background: linear-gradient(160deg, #1e0a3c 0%, #0d1b2a 60%, #0a0a0a 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 0 80px;
+    }
+    .hero-badge {
+      display: inline-block; padding: 14px 36px; border-radius: 999px;
+      border: 1px solid rgba(168,85,247,0.4); background: rgba(168,85,247,0.1);
+      font-size: 32px; font-weight: 600; color: #c084fc; letter-spacing: 0.08em; text-transform: uppercase;
+      opacity: 0; transform: translateY(20px); margin-bottom: 40px;
+    }
+    .hero-title {
+      font-size: 140px; font-weight: 800; line-height: 0.9; color: #fff;
+      text-align: center; letter-spacing: -0.03em;
+      opacity: 0; transform: translateY(40px);
+    }
+    .hero-title span { color: #a855f7; }
+    .hero-sub {
+      font-size: 42px; font-weight: 400; color: rgba(255,255,255,0.45);
+      text-align: center; margin-top: 36px;
+      opacity: 0; transform: translateY(20px);
+    }
+
+    .features {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 960px;
+      padding: 60px 60px 80px; display: flex; flex-direction: column; gap: 24px;
+    }
+    .feat {
+      flex: 1;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px; padding: 44px 52px;
+      display: flex; align-items: center; gap: 44px;
+      opacity: 0; transform: translateX(120px);
+    }
+    .feat-icon { font-size: 72px; flex-shrink: 0; }
+    .feat-text {}
+    .feat-title { font-size: 52px; font-weight: 800; color: #fff; line-height: 1.1; }
+    .feat-desc { font-size: 34px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 8px; }
+    .feat:nth-child(2) { border-color: rgba(168,85,247,0.2); background: rgba(168,85,247,0.06); }
+
+    .divider { width: 100%; height: 1px; background: rgba(255,255,255,0.06); }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1920">
+    <div class="hero">
+      <div class="hero-badge" id="badge">New Launch</div>
+      <div class="hero-title" id="htitle">The future<br/>of <span>content</span><br/>is here.</div>
+      <div class="hero-sub" id="hsub">HyperFrames Studio — 2024</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="features">
+      <div class="feat" id="f1">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-text">
+          <div class="feat-title">10× Faster</div>
+          <div class="feat-desc">Create in minutes, not hours.</div>
+        </div>
+      </div>
+      <div class="feat" id="f2">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-text">
+          <div class="feat-title">100+ Templates</div>
+          <div class="feat-desc">Start with the best, make it yours.</div>
+        </div>
+      </div>
+      <div class="feat" id="f3">
+        <div class="feat-icon">🚀</div>
+        <div class="feat-text">
+          <div class="feat-title">Publish Anywhere</div>
+          <div class="feat-desc">TikTok, Reels, YouTube — all formats.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#badge",  { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.4);
+        tl.to("#htitle", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.8);
+        tl.to("#hsub",   { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.4);
+
+        tl.to("#f1", { opacity: 1, x: 0, duration: 0.65, ease: "power3.out" }, 2.5);
+        tl.to("#f2", { opacity: 1, x: 0, duration: 0.65, ease: "power3.out" }, 2.9);
+        tl.to("#f3", { opacity: 1, x: 0, duration: 0.65, ease: "power3.out" }, 3.3);
+
+        // Highlight cycle
+        tl.to("#f1", { borderColor: "rgba(168,85,247,0.5)", background: "rgba(168,85,247,0.1)", duration: 0.3 }, 5.0);
+        tl.to("#f1", { borderColor: "rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", duration: 0.3 }, 6.5);
+        tl.to("#f2", { borderColor: "rgba(168,85,247,0.5)", background: "rgba(168,85,247,0.1)", duration: 0.3 }, 7.0);
+        tl.to("#f2", { borderColor: "rgba(168,85,247,0.2)", background: "rgba(168,85,247,0.06)", duration: 0.3 }, 8.5);
+        tl.to("#f3", { borderColor: "rgba(168,85,247,0.5)", background: "rgba(168,85,247,0.1)", duration: 0.3 }, 9.0);
+      })();
+    </script>
+  </div>
+</body>
+</html>

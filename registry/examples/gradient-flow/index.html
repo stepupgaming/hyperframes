@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Gradient Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #120824; }
+
+    .bg {
+      position: absolute; inset: -200px;
+      background: radial-gradient(ellipse 1200px 900px at 30% 60%, #6d28d9 0%, transparent 70%),
+                  radial-gradient(ellipse 1000px 700px at 80% 20%, #db2777 0%, transparent 65%),
+                  radial-gradient(ellipse 800px 600px at 60% 90%, #0ea5e9 0%, transparent 60%),
+                  #120824;
+    }
+    .noise {
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px; opacity: 0.5;
+    }
+    .vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+    }
+    .center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+    }
+    .eyebrow {
+      font-family: "Inter", sans-serif; font-size: 20px; font-weight: 300;
+      letter-spacing: 0.5em; color: rgba(255,255,255,0.5); text-transform: uppercase;
+      opacity: 0; transform: translateY(16px);
+    }
+    .heading {
+      font-family: "Playfair Display", serif; font-size: 200px; font-weight: 900;
+      line-height: 0.88; text-align: center; color: #fff;
+      opacity: 0; transform: translateY(40px);
+    }
+    .heading em { font-style: italic; color: rgba(255,255,255,0.65); }
+    .desc {
+      font-family: "Inter", sans-serif; font-size: 28px; font-weight: 300;
+      color: rgba(255,255,255,0.55); letter-spacing: 0.08em; text-align: center;
+      max-width: 900px;
+      opacity: 0; transform: translateY(20px);
+    }
+    .pill {
+      display: inline-block; padding: 12px 40px;
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 999px;
+      font-family: "Inter", sans-serif; font-size: 18px; font-weight: 400;
+      color: rgba(255,255,255,0.7); letter-spacing: 0.1em;
+      opacity: 0; transform: translateY(20px);
+      backdrop-filter: blur(8px);
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+    <div class="bg" id="bg"></div>
+    <div class="orb" id="orb1" style="width:600px;height:600px;background:#8b5cf6;left:-100px;top:200px;"></div>
+    <div class="orb" id="orb2" style="width:500px;height:500px;background:#ec4899;right:-80px;top:100px;"></div>
+    <div class="orb" id="orb3" style="width:400px;height:400px;background:#06b6d4;left:500px;bottom:-80px;"></div>
+    <div class="noise"></div>
+    <div class="vignette"></div>
+
+    <div class="center">
+      <div class="eyebrow" id="eye">Motion Design Studio</div>
+      <div class="heading" id="head">Flow<br/><em>without</em> friction.</div>
+      <div class="desc" id="desc">Beautiful compositions that move with purpose.</div>
+      <div class="pill" id="pill">Get started &rarr;</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to(["#orb1","#orb2","#orb3"], { opacity: 1, duration: 2.5, ease: "power2.out", stagger: 0.4 }, 0);
+        tl.to("#eye",  { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 1.2);
+        tl.to("#head", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 1.7);
+        tl.to("#desc", { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 2.6);
+        tl.to("#pill", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 3.2);
+
+        tl.to("#orb1", { x: 120, y: -80, duration: 8, ease: "sine.inOut", yoyo: true, repeat: -1 }, 3);
+        tl.to("#orb2", { x: -100, y: 100, duration: 9, ease: "sine.inOut", yoyo: true, repeat: -1 }, 3);
+        tl.to("#orb3", { x: 80, y: -60, duration: 7, ease: "sine.inOut", yoyo: true, repeat: -1 }, 3);
+        tl.to("#bg",   { rotation: 8, scale: 1.05, duration: 10, ease: "sine.inOut", yoyo: true, repeat: -1 }, 3);
+      })();
+    </script>
+  </div>
+</body>
+</html>

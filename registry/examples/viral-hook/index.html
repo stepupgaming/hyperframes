@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <title>Viral Hook</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;600&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0a0a0a; font-family: "Montserrat", sans-serif; }
+
+    .bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 900px 900px at 50% 30%, #1a0a2e 0%, #0a0a0a 70%);
+    }
+    .top-tag {
+      position: absolute; top: 120px; left: 0; right: 0; text-align: center;
+      font-family: "Inter", sans-serif; font-size: 36px; font-weight: 600;
+      letter-spacing: 0.12em; color: rgba(255,255,255,0.35); text-transform: uppercase;
+      opacity: 0;
+    }
+    .hook-wrap {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0; padding: 0 80px;
+    }
+    .hook-eyebrow {
+      font-size: 44px; font-weight: 800; color: #facc15; letter-spacing: 0.08em;
+      text-transform: uppercase; opacity: 0; transform: translateY(30px);
+      margin-bottom: 28px;
+    }
+    .clip { overflow: hidden; }
+    .hook-line {
+      font-size: 148px; font-weight: 900; line-height: 0.9;
+      color: #fff; text-align: center; letter-spacing: -0.02em;
+      transform: translateY(115%); display: block;
+    }
+    .hook-line.yellow { color: #facc15; }
+    .hook-sub {
+      margin-top: 56px;
+      font-family: "Inter", sans-serif; font-size: 44px; font-weight: 400;
+      color: rgba(255,255,255,0.5); text-align: center;
+      opacity: 0; transform: translateY(24px);
+    }
+    .arrow {
+      position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
+      opacity: 0;
+    }
+    .arrow svg { display: block; }
+    .punch-box {
+      position: absolute; inset: 0;
+      background: #facc15;
+      transform: scaleY(0); transform-origin: center;
+      z-index: 5;
+    }
+    .punch-text {
+      position: absolute; inset: 0; z-index: 6;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 200px; font-weight: 900; color: #0a0a0a;
+      letter-spacing: -0.04em; text-align: center;
+      opacity: 0;
+    }
+    .bar-top, .bar-bot {
+      position: absolute; left: 0; right: 0; height: 0; background: #facc15; z-index: 2;
+    }
+    .bar-top { top: 0; }
+    .bar-bot { bottom: 0; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1080" data-height="1920">
+    <div class="bg"></div>
+    <div class="bar-top" id="bT"></div>
+    <div class="bar-bot" id="bB"></div>
+    <div class="punch-box" id="punch"></div>
+    <div class="punch-text" id="ptext">🔥 WOW 🔥</div>
+
+    <div class="top-tag" id="tag">Wait for it...</div>
+
+    <div class="hook-wrap">
+      <div class="hook-eyebrow" id="eye">POV:</div>
+      <div class="clip"><span class="hook-line" id="h1">You just</span></div>
+      <div class="clip"><span class="hook-line" id="h2">found the</span></div>
+      <div class="clip"><span class="hook-line yellow" id="h3">best thing</span></div>
+      <div class="clip"><span class="hook-line" id="h4">on the internet.</span></div>
+      <div class="hook-sub" id="sub">Keep watching 👇</div>
+    </div>
+
+    <div class="arrow" id="arr">
+      <svg width="60" height="80" viewBox="0 0 60 80" fill="none">
+        <path d="M30 0 L30 60 M10 42 L30 62 L50 42" stroke="#facc15" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to(["#bT","#bB"], { height: 6, duration: 0.4, ease: "power4.out" }, 0);
+        tl.to("#tag", { opacity: 1, duration: 0.5 }, 0.3);
+        tl.to("#eye", { opacity: 1, y: 0, duration: 0.5, ease: "back.out(2)" }, 0.7);
+        tl.to("#h1", { y: 0, duration: 0.45, ease: "power4.out" }, 1.1);
+        tl.to("#h2", { y: 0, duration: 0.45, ease: "power4.out" }, 1.35);
+        tl.to("#h3", { y: 0, duration: 0.45, ease: "power4.out" }, 1.6);
+        tl.to("#h4", { y: 0, duration: 0.45, ease: "power4.out" }, 1.85);
+        tl.to("#sub", { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.5);
+        tl.to("#arr", { opacity: 1, duration: 0.4 }, 3.0);
+        tl.to("#arr", { y: 20, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: -1 }, 3.0);
+
+        // Punch frame at 6s
+        tl.to("#punch", { scaleY: 1, duration: 0.12, ease: "power4.in" }, 6.0);
+        tl.to("#ptext", { opacity: 1, duration: 0.08 }, 6.1);
+        tl.to("#punch", { scaleY: 0, duration: 0.18, ease: "power4.out" }, 6.6);
+        tl.to("#ptext", { opacity: 0, duration: 0.08 }, 6.6);
+
+        // shake
+        tl.to("#h3", { x: -12, duration: 0.05, yoyo: true, repeat: 5, ease: "none" }, 6.0);
+      })();
+    </script>
+  </div>
+</body>
+</html>

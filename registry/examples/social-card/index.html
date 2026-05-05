@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Social Card</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Inter:wght@300;400&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0f0b1e; font-family: "Syne", sans-serif; }
+
+    .bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 1400px 900px at 50% 60%, #2e1065 0%, #0f0b1e 70%);
+    }
+    .card-wrap {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      width: 1360px; height: 760px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 32px;
+      backdrop-filter: blur(20px);
+      padding: 80px 100px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      opacity: 0; transform: scale(0.9) translateY(40px);
+      box-shadow: 0 0 120px rgba(139,92,246,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .card-top { display: flex; align-items: center; justify-content: space-between; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 24px; border-radius: 999px;
+      background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4);
+      font-family: "Inter", sans-serif; font-size: 18px; font-weight: 400;
+      color: #c4b5fd; letter-spacing: 0.05em;
+      opacity: 0; transform: translateX(-20px);
+    }
+    .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #a78bfa; }
+    .date-tag {
+      font-family: "Inter", sans-serif; font-size: 18px; font-weight: 300;
+      color: rgba(255,255,255,0.3); letter-spacing: 0.08em;
+      opacity: 0;
+    }
+    .clip { overflow: hidden; }
+    .card-title {
+      font-size: 130px; font-weight: 800; line-height: 0.88;
+      color: #fff; letter-spacing: -0.03em;
+      transform: translateY(110%); display: block;
+    }
+    .card-title em { font-style: italic; font-weight: 400; color: #a78bfa; }
+    .card-bottom { display: flex; align-items: flex-end; justify-content: space-between; }
+    .card-desc {
+      font-family: "Inter", sans-serif; font-size: 24px; font-weight: 300;
+      color: rgba(255,255,255,0.45); max-width: 680px; line-height: 1.5;
+      opacity: 0; transform: translateY(20px);
+    }
+    .cta {
+      padding: 22px 56px; border-radius: 999px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 0.04em;
+      box-shadow: 0 8px 40px rgba(124,58,237,0.4);
+      opacity: 0; transform: translateY(20px);
+    }
+    .sparkle { position: absolute; border-radius: 50%; background: #fff; pointer-events: none; opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+    <div class="bg"></div>
+
+    <div class="sparkle" id="sp1" style="width:6px;height:6px;top:200px;left:400px;"></div>
+    <div class="sparkle" id="sp2" style="width:4px;height:4px;top:300px;right:500px;"></div>
+    <div class="sparkle" id="sp3" style="width:5px;height:5px;bottom:250px;left:600px;"></div>
+    <div class="sparkle" id="sp4" style="width:3px;height:3px;top:400px;right:300px;"></div>
+
+    <div class="card-wrap">
+      <div class="card" id="card">
+        <div class="card-top">
+          <div class="badge" id="badge"><div class="badge-dot"></div>New Release</div>
+          <div class="date-tag" id="date">January 2024</div>
+        </div>
+        <div>
+          <div class="clip"><span class="card-title" id="ct1">Something</span></div>
+          <div class="clip"><span class="card-title" id="ct2"><em>amazing</em> is here.</span></div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-desc" id="desc">A new era of motion design begins now. Built for creators who refuse to settle.</div>
+          <div class="cta" id="cta">Explore now</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to(["#sp1","#sp2","#sp3","#sp4"], {
+          opacity: 1, scale: 2, duration: 2, ease: "sine.inOut",
+          yoyo: true, repeat: -1, stagger: 0.6
+        }, 0);
+        tl.to("#card", { opacity: 1, scale: 1, y: 0, duration: 1.0, ease: "power3.out" }, 0.3);
+        tl.to("#badge", { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 0.9);
+        tl.to("#date", { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.0);
+        tl.to("#ct1", { y: 0, duration: 0.8, ease: "power3.out" }, 1.3);
+        tl.to("#ct2", { y: 0, duration: 0.8, ease: "power3.out" }, 1.6);
+        tl.to("#desc", { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 2.2);
+        tl.to("#cta", { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 2.4);
+        tl.to("#cta", { boxShadow: "0 8px 80px rgba(124,58,237,0.8)", duration: 1.5, yoyo: true, repeat: -1, ease: "sine.inOut" }, 3.5);
+      })();
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Stat Board</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #060d1f; font-family: "Inter", sans-serif; }
+
+    .bg-glow {
+      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none;
+      background: radial-gradient(circle, #0369a1 0%, transparent 70%);
+      width: 1200px; height: 800px; left: 50%; top: 50%;
+      transform: translate(-50%,-50%); opacity: 0.18;
+    }
+    .grid-lines {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(14,165,233,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+    }
+    .header {
+      position: absolute; top: 100px; left: 0; right: 0;
+      text-align: center; opacity: 0; transform: translateY(-20px);
+    }
+    .header-label {
+      font-size: 16px; font-weight: 500; letter-spacing: 0.35em;
+      color: #38bdf8; text-transform: uppercase; display: block; margin-bottom: 16px;
+    }
+    .header-title {
+      font-size: 56px; font-weight: 800; color: #fff; letter-spacing: -0.02em;
+    }
+    .cards {
+      position: absolute; bottom: 120px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 40px; padding: 0 120px;
+    }
+    .card {
+      flex: 1; max-width: 380px;
+      background: rgba(14,165,233,0.06); border: 1px solid rgba(14,165,233,0.18);
+      border-radius: 20px; padding: 52px 44px;
+      opacity: 0; transform: translateY(60px);
+    }
+    .card-icon { font-size: 36px; margin-bottom: 24px; }
+    .card-num {
+      font-size: 96px; font-weight: 800; color: #fff;
+      letter-spacing: -0.04em; line-height: 1;
+    }
+    .card-num span { color: #38bdf8; }
+    .card-label {
+      font-size: 20px; font-weight: 400; color: rgba(255,255,255,0.45);
+      margin-top: 16px; letter-spacing: 0.02em;
+    }
+    .card-bar {
+      height: 3px; background: rgba(56,189,248,0.15); border-radius: 99px;
+      margin-top: 28px; overflow: hidden;
+    }
+    .card-bar-fill { height: 100%; border-radius: 99px; width: 0; background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+    .divider {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 0; height: 1px; background: rgba(14,165,233,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+    <div class="bg-glow"></div>
+    <div class="grid-lines"></div>
+    <div class="divider" id="div"></div>
+
+    <div class="header" id="hdr">
+      <span class="header-label">Q4 Performance Report</span>
+      <div class="header-title">Results that speak for themselves.</div>
+    </div>
+
+    <div class="cards">
+      <div class="card" id="c1">
+        <div class="card-icon">📈</div>
+        <div class="card-num" id="n1">0<span>%</span></div>
+        <div class="card-label">Revenue Growth</div>
+        <div class="card-bar"><div class="card-bar-fill" id="b1"></div></div>
+      </div>
+      <div class="card" id="c2">
+        <div class="card-icon">👥</div>
+        <div class="card-num" id="n2">0<span>K</span></div>
+        <div class="card-label">Active Users</div>
+        <div class="card-bar"><div class="card-bar-fill" id="b2"></div></div>
+      </div>
+      <div class="card" id="c3">
+        <div class="card-icon">⚡</div>
+        <div class="card-num" id="n3">0<span>ms</span></div>
+        <div class="card-label">Avg. Response Time</div>
+        <div class="card-bar"><div class="card-bar-fill" id="b3"></div></div>
+      </div>
+      <div class="card" id="c4">
+        <div class="card-icon">⭐</div>
+        <div class="card-num" id="n4">0<span>/5</span></div>
+        <div class="card-label">Customer Rating</div>
+        <div class="card-bar"><div class="card-bar-fill" id="b4"></div></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#div", { width: "80%", duration: 1.2, ease: "power4.out" }, 0.3);
+        tl.to("#hdr", { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.8);
+        tl.to(["#c1","#c2","#c3","#c4"], { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.14 }, 1.6);
+
+        const counts = [
+          { el: "#n1", end: 247, dec: 0 },
+          { el: "#n2", end: 128, dec: 0 },
+          { el: "#n3", end: 48, dec: 0 },
+          { el: "#n4", end: 4.8, dec: 1 },
+        ];
+        const bars = [{ el: "#b1", w: "82%" }, { el: "#b2", w: "64%" }, { el: "#b3", w: "95%" }, { el: "#b4", w: "96%" }];
+
+        counts.forEach(({ el, end, dec }, i) => {
+          const suffix = document.querySelector(el + " span")?.outerHTML ?? "";
+          const base = document.querySelector(el);
+          const obj = { val: 0 };
+          tl.to(obj, {
+            val: end, duration: 2.5, ease: "power2.out",
+            onUpdate() {
+              if (base) base.innerHTML = (dec ? obj.val.toFixed(dec) : Math.round(obj.val)) + suffix;
+            }
+          }, 2.4 + i * 0.15);
+        });
+
+        bars.forEach(({ el, w }, i) => {
+          tl.to(el, { width: w, duration: 2.2, ease: "power3.out" }, 2.5 + i * 0.15);
+        });
+      })();
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Text Storm</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Inter:wght@300;700&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050505; }
+
+    .storm-word {
+      position: absolute; font-family: "Black Han Sans", sans-serif;
+      font-weight: 400; white-space: nowrap;
+      opacity: 0; pointer-events: none;
+      transform-origin: center;
+    }
+
+    .center-reveal {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+      opacity: 0; z-index: 5;
+    }
+    .clip { overflow: hidden; }
+    .big-line {
+      font-family: "Black Han Sans", sans-serif; font-size: 240px; line-height: 0.88;
+      color: #fff; text-align: center; letter-spacing: -0.02em;
+      transform: translateY(110%); display: block;
+    }
+    .big-line.accent { color: #f59e0b; }
+    .center-sub {
+      font-family: "Inter", sans-serif; font-size: 32px; font-weight: 300;
+      color: rgba(255,255,255,0.4); letter-spacing: 0.15em; text-transform: uppercase;
+      opacity: 0; transform: translateY(16px);
+    }
+    .vignette {
+      position: absolute; inset: 0; pointer-events: none; z-index: 4;
+      background: radial-gradient(ellipse 1600px 900px at 50% 50%, transparent 40%, #050505 100%);
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+    <div class="vignette" id="vig"></div>
+
+    <div class="center-reveal" id="crev">
+      <div class="clip"><span class="big-line" id="bl1">MAKE IT</span></div>
+      <div class="clip"><span class="big-line accent" id="bl2">MATTER.</span></div>
+      <div class="center-sub" id="csub">Your story deserves to be seen.</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        const WORDS = [
+          "BOLD", "FAST", "IMPACT", "REAL", "NOW", "LOUD", "VIVID",
+          "MOTION", "CREATE", "STRONG", "SHARP", "WILD", "FIRE",
+          "POWER", "STORY", "ALIVE", "PUSH", "RISE", "WIN", "FLOW",
+          "RAW", "BIG", "PURE", "TRUE", "NEXT", "GLOW"
+        ];
+        const COLORS = ["#fff", "#f59e0b", "#ef4444", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899"];
+        const SIZES  = [40, 56, 72, 88, 104, 48, 64];
+
+        const stage = document.getElementById("root");
+        const words = [];
+
+        WORDS.forEach((word, i) => {
+          const el = document.createElement("div");
+          el.className = "storm-word";
+          el.textContent = word;
+          const sz = SIZES[i % SIZES.length];
+          el.style.fontSize = sz + "px";
+          el.style.color = COLORS[i % COLORS.length];
+          el.style.opacity = "0";
+
+          // Random start position (off-screen edge)
+          const edge = Math.floor(Math.random() * 4);
+          let sx, sy, ex, ey;
+          switch(edge) {
+            case 0: sx = Math.random()*2400-200; sy = -150; break;
+            case 1: sx = 2100; sy = Math.random()*1280-100; break;
+            case 2: sx = Math.random()*2400-200; sy = 1200; break;
+            default: sx = -300; sy = Math.random()*1280-100;
+          }
+          ex = 300 + Math.random() * 1300;
+          ey = 100 + Math.random() * 880;
+
+          el.style.left = sx + "px";
+          el.style.top = sy + "px";
+          el.style.transform = `rotate(${(Math.random()-0.5)*30}deg)`;
+          stage.appendChild(el);
+          words.push({ el, sx, sy, ex, ey, sz });
+        });
+
+        // Staggered fly-in
+        words.forEach(({ el, ex, ey, sz }, i) => {
+          const t = 0.1 + i * 0.18;
+          tl.to(el, { opacity: 0.7, x: ex - parseFloat(el.style.left), y: ey - parseFloat(el.style.top), rotation: (Math.random()-0.5)*12, duration: 1.2, ease: "power3.out" }, t);
+        });
+
+        // Vignette in to focus center
+        tl.to("#vig", { opacity: 1, duration: 1.5, ease: "power2.out" }, 4.0);
+
+        // Storm words fade and scatter out
+        words.forEach(({ el }, i) => {
+          tl.to(el, { opacity: 0, scale: 0.5, duration: 0.6, ease: "power2.in" }, 4.2 + i * 0.04);
+        });
+
+        // Big reveal
+        tl.to("#crev", { opacity: 1, duration: 0.1 }, 5.2);
+        tl.to("#bl1", { y: 0, duration: 0.8, ease: "power4.out" }, 5.3);
+        tl.to("#bl2", { y: 0, duration: 0.8, ease: "power4.out" }, 5.6);
+        tl.to("#csub", { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 6.3);
+
+        // Pulse accent
+        tl.to("#bl2", { color: "#fff", duration: 0.5, yoyo: true, repeat: -1, ease: "sine.inOut", repeatDelay: 1.5 }, 8);
+      })();
+    </script>
+  </div>
+</body>
+</html>

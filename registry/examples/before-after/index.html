@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Before &amp; After</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0c0c0c; font-family: "Inter", sans-serif; }
+
+    .half {
+      position: absolute; top: 0; bottom: 0; width: 960px;
+      overflow: hidden; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .half-before {
+      left: 0;
+      background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+      clip-path: inset(0 0 0 0);
+    }
+    .half-after {
+      right: 0;
+      background: linear-gradient(135deg, #001233 0%, #012a4a 60%, #013a63 100%);
+      clip-path: inset(0 0 0 0);
+    }
+
+    .label-badge {
+      position: absolute; top: 80px;
+      padding: 14px 44px; border-radius: 999px;
+      font-size: 28px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      opacity: 0;
+    }
+    .lb-before { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1); }
+    .lb-after  { background: rgba(0,180,255,0.15); color: #60c5ff; border: 1px solid rgba(0,180,255,0.3); }
+
+    .metric-wrap {
+      text-align: center; opacity: 0; transform: translateY(30px);
+    }
+    .metric-num {
+      font-size: 240px; font-weight: 900; line-height: 1; letter-spacing: -0.05em;
+    }
+    .half-before .metric-num { color: rgba(255,255,255,0.2); }
+    .half-after  .metric-num { color: #fff; text-shadow: 0 0 80px rgba(0,144,255,0.5); }
+    .metric-label {
+      font-size: 36px; font-weight: 300; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; margin-top: 16px;
+    }
+    .metric-sub {
+      font-size: 28px; font-weight: 500;
+      margin-top: 12px; letter-spacing: 0.05em;
+    }
+    .half-before .metric-sub { color: rgba(255,80,80,0.6); }
+    .half-after  .metric-sub { color: #34d399; }
+
+    .divider {
+      position: absolute; top: 0; bottom: 0; left: 50%;
+      width: 4px; background: #fff; transform: translateX(-50%);
+      box-shadow: 0 0 30px rgba(255,255,255,0.6);
+      transform: translateX(-50%) scaleY(0); transform-origin: 50% 0%;
+      z-index: 10;
+    }
+    .divider-handle {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #fff; z-index: 11;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; opacity: 0;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+
+    .bottom-stat {
+      position: absolute; bottom: 100px; left: 0; right: 0;
+      text-align: center; opacity: 0;
+    }
+    .stat-highlight {
+      font-size: 52px; font-weight: 700; color: #fff; letter-spacing: -0.01em;
+    }
+    .stat-highlight em { font-style: normal; color: #34d399; }
+    .stat-sub { font-size: 26px; font-weight: 300; color: rgba(255,255,255,0.35); margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+    <div class="half half-before" id="hB">
+      <div class="label-badge lb-before" id="lbB">Before</div>
+      <div class="metric-wrap" id="mB">
+        <div class="metric-num" id="nB">2.1%</div>
+        <div class="metric-label">Conversion Rate</div>
+        <div class="metric-sub">↓ Below industry avg.</div>
+      </div>
+    </div>
+
+    <div class="half half-after" id="hA">
+      <div class="label-badge lb-after" id="lbA">After</div>
+      <div class="metric-wrap" id="mA">
+        <div class="metric-num" id="nA">0%</div>
+        <div class="metric-label">Conversion Rate</div>
+        <div class="metric-sub" id="msA">↑ Calculating...</div>
+      </div>
+    </div>
+
+    <div class="divider" id="div"></div>
+    <div class="divider-handle" id="dh">⇔</div>
+
+    <div class="bottom-stat" id="bs">
+      <div class="stat-highlight">Results improved by <em>+847%</em> in 30 days.</div>
+      <div class="stat-sub">Using the exact same traffic — just a smarter funnel.</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#div", { scaleY: 1, duration: 1.0, ease: "power3.out" }, 0.3);
+        tl.to("#dh", { opacity: 1, duration: 0.4 }, 0.9);
+
+        tl.to(["#lbB","#lbA"], { opacity: 1, duration: 0.5, stagger: 0.15 }, 1.0);
+        tl.to(["#mB","#mA"], { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.2 }, 1.4);
+
+        // Count up "after" number
+        const nA = document.getElementById("nA");
+        const msA = document.getElementById("msA");
+        const obj = { v: 0 };
+        tl.to(obj, {
+          v: 19.8, duration: 3, ease: "power2.out",
+          onUpdate() {
+            if (nA) nA.textContent = obj.v.toFixed(1) + "%";
+          },
+          onComplete() {
+            if (msA) { msA.textContent = "↑ 9.4× industry avg."; msA.style.color = "#34d399"; }
+          }
+        }, 2.5);
+
+        tl.to("#bs", { opacity: 1, duration: 0.8, ease: "power2.out" }, 6.5);
+
+        // Divider slide to reveal more "after"
+        tl.to("#div", { left: "35%", duration: 1.5, ease: "power3.inOut" }, 8.0);
+        tl.to("#dh", { left: "35%", duration: 1.5, ease: "power3.inOut" }, 8.0);
+        tl.to("#hB", { width: "35%", duration: 1.5, ease: "power3.inOut" }, 8.0);
+        tl.to("#hA", { width: "65%", left: "35%", duration: 1.5, ease: "power3.inOut" }, 8.0);
+      })();
+    </script>
+  </div>
+</body>
+</html>

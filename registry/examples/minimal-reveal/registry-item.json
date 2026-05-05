@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "minimal-reveal",
+  "type": "hyperframes:example",
+  "title": "Minimal Reveal",
+  "description": "Clean editorial typography with masked text reveals",
+  "dimensions": { "width": 1920, "height": 1080 },
+  "duration": 12,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

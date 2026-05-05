@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Film Title</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+
+    .vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(20,15,8,0.6) 0%, #000 100%);
+    }
+    .grain {
+      position: absolute; inset: 0; opacity: 0.08;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+    .letterbox { position: absolute; left: 0; right: 0; height: 0; background: #000; z-index: 10; }
+    .letterbox-top { top: 0; }
+    .letterbox-bot { bottom: 0; }
+
+    .center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+    }
+    .pre-title {
+      font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 300;
+      letter-spacing: 0.55em; color: rgba(212,175,55,0.75); text-transform: uppercase;
+      opacity: 0; margin-bottom: 28px;
+    }
+    .main-title {
+      font-family: "IM Fell English", serif; font-size: 260px; font-weight: 400;
+      line-height: 0.85; text-align: center; color: #d4af37;
+      text-shadow: 0 0 60px rgba(212,175,55,0.3);
+      opacity: 0; transform: scale(0.92);
+    }
+    .main-title em { font-style: italic; color: #f5e27e; }
+    .rule { width: 0; height: 1px; background: rgba(212,175,55,0.4); margin: 36px auto; }
+    .sub-title {
+      font-family: "Cormorant Garamond", serif; font-size: 36px; font-weight: 300; font-style: italic;
+      letter-spacing: 0.25em; color: rgba(212,175,55,0.6);
+      opacity: 0; transform: translateY(16px);
+    }
+    .year {
+      position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%);
+      font-family: "Cormorant Garamond", serif; font-size: 20px; font-weight: 300;
+      letter-spacing: 0.6em; color: rgba(212,175,55,0.35); text-transform: uppercase;
+      opacity: 0;
+    }
+    .corner-orn { position: absolute; opacity: 0; }
+    .corner-orn svg { display: block; }
+    .co-tl { top: 80px; left: 100px; }
+    .co-tr { top: 80px; right: 100px; transform: scaleX(-1); }
+    .co-bl { bottom: 80px; left: 100px; transform: scaleY(-1); }
+    .co-br { bottom: 80px; right: 100px; transform: scale(-1); }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+    <div class="grain"></div>
+
+    <div class="letterbox letterbox-top" id="lbT"></div>
+    <div class="letterbox letterbox-bot" id="lbB"></div>
+
+    <div class="corner-orn co-tl" id="coTL">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M10 70 L10 10 L70 10" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+        <path d="M10 10 L30 10 M10 10 L10 30" stroke="#d4af37" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="corner-orn co-tr" id="coTR">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M10 70 L10 10 L70 10" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+        <path d="M10 10 L30 10 M10 10 L10 30" stroke="#d4af37" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="corner-orn co-bl" id="coBL">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M10 70 L10 10 L70 10" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+        <path d="M10 10 L30 10 M10 10 L10 30" stroke="#d4af37" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="corner-orn co-br" id="coBR">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M10 70 L10 10 L70 10" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+        <path d="M10 10 L30 10 M10 10 L10 30" stroke="#d4af37" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <div class="vignette"></div>
+
+    <div class="center">
+      <div class="pre-title" id="pre">A HyperFrames Production presents</div>
+      <div class="main-title" id="main"><em>The</em><br/>Arrival</div>
+      <div class="rule" id="rule"></div>
+      <div class="sub-title" id="sub">A story of light and shadow</div>
+    </div>
+    <div class="year" id="year">MMXXIV</div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to(["#lbT","#lbB"], { height: 100, duration: 1.4, ease: "power3.out" }, 0);
+        tl.to(["#coTL","#coTR","#coBL","#coBR"], { opacity: 1, duration: 0.6, stagger: 0.12 }, 0.8);
+        tl.to("#pre", { opacity: 1, duration: 0.8, ease: "power2.out" }, 1.4);
+        tl.to("#main", { opacity: 1, scale: 1, duration: 1.8, ease: "power2.out" }, 2.0);
+        tl.to("#rule", { width: 480, duration: 1.2, ease: "power3.out" }, 3.2);
+        tl.to("#sub", { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 3.8);
+        tl.to("#year", { opacity: 1, duration: 1.2, ease: "power2.out" }, 4.5);
+
+        tl.to("#main", {
+          textShadow: "0 0 100px rgba(212,175,55,0.5), 0 0 200px rgba(212,175,55,0.25)",
+          duration: 2, yoyo: true, repeat: -1, ease: "sine.inOut"
+        }, 5);
+      })();
+    </script>
+  </div>
+</body>
+</html>

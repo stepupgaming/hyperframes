@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "reel-promo",
+  "type": "hyperframes:example",
+  "title": "Reel Promo",
+  "description": "Swipe-style vertical promo with sliding feature cards",
+  "dimensions": { "width": 1080, "height": 1920 },
+  "duration": 12,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}

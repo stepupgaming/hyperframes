@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Product Launch</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;700;900&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: "Inter", sans-serif; }
+
+    .spotlight {
+      position: absolute; top: -600px; left: 50%; transform: translateX(-50%);
+      width: 1200px; height: 1200px;
+      background: conic-gradient(from -20deg at 50% 0%, transparent 0%, rgba(255,255,255,0.06) 10%, transparent 20%);
+      opacity: 0;
+    }
+    .halo {
+      position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+      opacity: 0;
+    }
+    .product-stage {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .product-box {
+      width: 520px; height: 520px;
+      background: linear-gradient(145deg, #1c1c1c 0%, #0a0a0a 50%, #141414 100%);
+      border-radius: 56px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 80px 160px rgba(0,0,0,0.8),
+        0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 180px;
+      opacity: 0; transform: translateY(60px) scale(0.92);
+    }
+    .ring-decor {
+      position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
+      left: 50%; top: 50%; transform: translate(-50%,-50%);
+    }
+
+    .left-panel {
+      position: absolute; left: 120px; top: 50%; transform: translateY(-50%);
+      max-width: 520px; opacity: 0;
+    }
+    .pre-label {
+      font-size: 18px; font-weight: 700; letter-spacing: 0.35em; color: rgba(255,255,255,0.3);
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    .product-name {
+      font-size: 120px; font-weight: 900; line-height: 0.88; color: #fff;
+      letter-spacing: -0.04em;
+    }
+    .product-tagline {
+      font-size: 28px; font-weight: 200; color: rgba(255,255,255,0.4);
+      line-height: 1.5; margin-top: 28px; letter-spacing: 0.02em;
+    }
+
+    .right-panel {
+      position: absolute; right: 120px; top: 50%; transform: translateY(-50%);
+      text-align: right; opacity: 0;
+    }
+    .price {
+      font-size: 120px; font-weight: 900; color: #fff; letter-spacing: -0.04em;
+    }
+    .price sup { font-size: 48px; font-weight: 300; vertical-align: top; margin-top: 24px; display: inline-block; }
+    .price-label { font-size: 22px; font-weight: 300; color: rgba(255,255,255,0.3); margin-top: 8px; letter-spacing: 0.1em; }
+    .cta-btn {
+      display: inline-block; margin-top: 36px; padding: 22px 60px; border-radius: 999px;
+      background: #fff; font-size: 24px; font-weight: 700; color: #000; letter-spacing: 0.05em;
+    }
+
+    .bottom-rule {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: scaleX(0);
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+    <div class="spotlight" id="spot"></div>
+    <div class="halo" id="halo"></div>
+    <div class="ring-decor" id="rd1" style="width:780px;height:780px;"></div>
+    <div class="ring-decor" id="rd2" style="width:1100px;height:1100px;"></div>
+
+    <div class="product-stage">
+      <div class="product-box" id="pbox">📦</div>
+    </div>
+
+    <div class="left-panel" id="lp">
+      <div class="pre-label">Introducing</div>
+      <div class="product-name">Pro<br/>Max.</div>
+      <div class="product-tagline">The most powerful creative tool<br/>we have ever made.</div>
+    </div>
+
+    <div class="right-panel" id="rp">
+      <div class="price"><sup>$</sup>299</div>
+      <div class="price-label">One-time · Lifetime access</div>
+      <div class="cta-btn">Get early access →</div>
+    </div>
+
+    <div class="bottom-rule" id="br"></div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        tl.to("#spot", { opacity: 1, duration: 2, ease: "power2.out" }, 0);
+        tl.to("#halo", { opacity: 1, duration: 1.5, ease: "power2.out" }, 0.3);
+        tl.to("#pbox", { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "power3.out" }, 0.8);
+        tl.to("#lp", { opacity: 1, duration: 0.9, ease: "power3.out" }, 1.6);
+        tl.to("#rp", { opacity: 1, duration: 0.9, ease: "power3.out" }, 1.9);
+        tl.to("#br", { scaleX: 1, duration: 1.4, ease: "power3.out" }, 2.2);
+
+        // Rings pulse out
+        tl.fromTo(["#rd1","#rd2"], { scale: 0.8, opacity: 0 }, {
+          scale: 1.3, opacity: 0, duration: 4, ease: "power2.out", stagger: 0.6, repeat: -1
+        }, 1.5);
+
+        // Product box float
+        tl.to("#pbox", {
+          y: -20, duration: 3, ease: "sine.inOut", yoyo: true, repeat: -1
+        }, 2.5);
+
+        // Spotlight sway
+        tl.to("#spot", {
+          rotation: 8, duration: 5, ease: "sine.inOut", yoyo: true, repeat: -1
+        }, 2);
+      })();
+    </script>
+  </div>
+</body>
+</html>

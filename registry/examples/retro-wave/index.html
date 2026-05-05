@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Retro Wave</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Share+Tech+Mono&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0d0221; }
+
+    .sky {
+      position: absolute; top: 0; left: 0; right: 0; height: 600px;
+      background: linear-gradient(to bottom, #0d0221 0%, #1a0640 30%, #4a1060 55%, #c2185b 75%, #ff6f00 90%, #ff8f00 100%);
+    }
+    .sun {
+      position: absolute; left: 50%; top: 260px; transform: translateX(-50%);
+      width: 320px; height: 320px; border-radius: 50%;
+      background: linear-gradient(to bottom, #ffeb3b, #ff6f00);
+      box-shadow: 0 0 80px #ff6f00, 0 0 160px #ff6f0066;
+      opacity: 0;
+      overflow: hidden;
+    }
+    .sun-stripe { position: absolute; left: 0; right: 0; background: #0d0221; }
+
+    .grid-floor {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 3000px; height: 600px;
+      opacity: 0;
+      transform-origin: 50% 0%;
+      transform: translateX(-50%) perspective(600px) rotateX(80deg);
+    }
+    .grid-floor canvas { position: absolute; inset: 0; }
+
+    .mountains {
+      position: absolute; left: 0; right: 0; bottom: 440px;
+      height: 200px; opacity: 0;
+    }
+    .mountain-svg { width: 100%; height: 100%; }
+
+    .text-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; padding-top: 60px; gap: 0;
+    }
+    .retro-title {
+      font-family: "Russo One", sans-serif; font-size: 220px; line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 3px #ff6ac1;
+      text-shadow: 0 0 40px #ff6ac1, 0 0 100px #c77dff66;
+      letter-spacing: 0.05em;
+      opacity: 0; transform: scaleY(0);
+      transform-origin: 50% 100%;
+    }
+    .retro-sub {
+      font-family: "Share Tech Mono", monospace; font-size: 36px;
+      color: #c77dff; letter-spacing: 0.4em;
+      text-shadow: 0 0 20px #c77dff;
+      opacity: 0; transform: translateY(20px);
+      margin-top: -10px;
+    }
+    .scanlines {
+      position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
+    }
+    .vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(13,2,33,0.85) 100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+    <div class="sky"></div>
+
+    <div class="sun" id="sun">
+      <div class="sun-stripe" style="top:40%;height:12px;"></div>
+      <div class="sun-stripe" style="top:52%;height:16px;"></div>
+      <div class="sun-stripe" style="top:68%;height:20px;"></div>
+      <div class="sun-stripe" style="top:88%;height:26px;"></div>
+    </div>
+
+    <div class="mountains" id="mtn">
+      <svg class="mountain-svg" viewBox="0 0 1920 200" preserveAspectRatio="none">
+        <polygon points="0,200 200,60 400,140 600,20 800,100 960,10 1120,110 1320,30 1520,130 1720,50 1920,140 1920,200" fill="#1a0640"/>
+        <polygon points="0,200 300,80 500,160 700,40 900,130 1100,20 1300,120 1500,60 1700,150 1920,70 1920,200" fill="#2d0b5a" opacity="0.7"/>
+      </svg>
+    </div>
+
+    <canvas id="gridCanvas" style="position:absolute;bottom:0;left:0;width:1920px;height:480px;opacity:0;"></canvas>
+
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+
+    <div class="text-center">
+      <div class="retro-title" id="title">RETRO</div>
+      <div class="retro-title" id="title2" style="-webkit-text-stroke:3px #c77dff; text-shadow: 0 0 40px #c77dff, 0 0 100px #ff6ac166;">WAVE</div>
+      <div class="retro-sub" id="sub">&#9670; 1 9 8 4 &#9670;</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        // Draw perspective grid
+        const canvas = document.getElementById("gridCanvas");
+        canvas.width = 1920; canvas.height = 480;
+        const ctx = canvas.getContext("2d");
+        const vx = 960, vy = 0;
+        const cols = 24, rows = 20;
+
+        function drawGrid(alpha) {
+          ctx.clearRect(0, 0, 1920, 480);
+          ctx.strokeStyle = `rgba(255,106,193,${alpha})`;
+          ctx.lineWidth = 1.5;
+          for (let i = 0; i <= cols; i++) {
+            const bx = (i / cols) * 1920;
+            ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(bx, 480); ctx.stroke();
+          }
+          for (let j = 1; j <= rows; j++) {
+            const t = Math.pow(j / rows, 2);
+            const ly = t * 480;
+            const lx0 = vx - (vx * t);
+            const lx1 = vx + ((1920 - vx) * t);
+            ctx.beginPath(); ctx.moveTo(lx0, ly); ctx.lineTo(lx1, ly); ctx.stroke();
+          }
+        }
+        drawGrid(0);
+
+        const gridAlpha = { v: 0 };
+
+        tl.to("#sun", { opacity: 1, top: 200, duration: 2, ease: "power2.out" }, 0);
+        tl.to("#mtn", { opacity: 1, duration: 1.2, ease: "power2.out" }, 1.0);
+        tl.to(gridAlpha, {
+          v: 0.35, duration: 1.5, ease: "power2.out",
+          onUpdate() { drawGrid(gridAlpha.v); canvas.style.opacity = "1"; }
+        }, 1.2);
+        tl.to(["#title","#title2"], { opacity: 1, scaleY: 1, duration: 0.6, ease: "power4.out", stagger: 0.15 }, 2.0);
+        tl.to("#sub", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 2.8);
+
+        // Grid scroll
+        let offset = 0;
+        const gridScroll = { v: 0 };
+        tl.to(gridScroll, {
+          v: 1, duration: 10, ease: "none", repeat: -1,
+          onUpdate() {
+            offset = (offset + 0.8) % (480 / 20);
+            drawGrid(0.35);
+          }
+        }, 3.5);
+
+        // Glow pulse
+        tl.to(["#title","#title2"], {
+          filter: "brightness(1.4)", duration: 1.5, yoyo: true, repeat: -1, ease: "sine.inOut"
+        }, 4);
+      })();
+    </script>
+  </div>
+</body>
+</html>

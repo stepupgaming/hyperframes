@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <title>Viral Drop</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=block" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: #06000f; font-family: "Bebas Neue", sans-serif; }
+
+    .bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 800px 800px at 50% 40%, rgba(124,0,255,0.3) 0%, transparent 70%),
+        #06000f;
+    }
+    .ring {
+      position: absolute; border-radius: 50%; border: 2px solid rgba(124,0,255,0.3);
+      left: 50%; top: 38%; transform: translate(-50%,-50%); opacity: 0;
+    }
+    .teaser {
+      position: absolute; top: 160px; left: 0; right: 0; text-align: center;
+      font-family: "Inter", sans-serif; font-size: 40px; font-weight: 400;
+      letter-spacing: 0.2em; color: rgba(255,255,255,0.4); text-transform: uppercase;
+      opacity: 0;
+    }
+    .count-stage {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .count-num {
+      position: absolute; font-size: 640px; font-weight: 400; line-height: 1;
+      color: #fff; letter-spacing: -0.06em;
+      opacity: 0; transform: scale(1.5);
+    }
+    .count-label {
+      position: absolute; font-family: "Inter", sans-serif;
+      font-size: 48px; font-weight: 700; letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.3); text-transform: uppercase;
+      bottom: 36%; left: 0; right: 0; text-align: center;
+      opacity: 0;
+    }
+    .reveal {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 24px; opacity: 0;
+    }
+    .reveal-top {
+      font-family: "Inter", sans-serif; font-size: 44px; font-weight: 700;
+      letter-spacing: 0.25em; color: #7c00ff; text-transform: uppercase;
+    }
+    .clip { overflow: hidden; }
+    .reveal-line {
+      font-size: 220px; line-height: 0.88; color: #fff; text-align: center;
+      transform: translateY(110%); display: block;
+    }
+    .reveal-sub {
+      font-family: "Inter", sans-serif; font-size: 44px; font-weight: 400;
+      color: rgba(255,255,255,0.5); text-align: center;
+      opacity: 0;
+    }
+    .burst {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(circle at 50% 40%, rgba(124,0,255,0.8) 0%, transparent 60%);
+      opacity: 0;
+    }
+    .flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 10; pointer-events: none; }
+    .rule { width: 0; height: 3px; background: #7c00ff; margin: 0 auto; box-shadow: 0 0 20px #7c00ff; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1080" data-height="1920">
+    <div class="bg"></div>
+    <div class="burst" id="burst"></div>
+    <div class="flash" id="flash"></div>
+
+    <div class="ring" id="r1" style="width:400px;height:400px;"></div>
+    <div class="ring" id="r2" style="width:700px;height:700px;"></div>
+    <div class="ring" id="r3" style="width:1100px;height:1100px;"></div>
+
+    <div class="teaser" id="teaser">Something big is dropping...</div>
+
+    <div class="count-stage">
+      <div class="count-num" id="c3">3</div>
+      <div class="count-num" id="c2">2</div>
+      <div class="count-num" id="c1">1</div>
+    </div>
+    <div class="count-label" id="clabel">Get ready</div>
+
+    <div class="reveal" id="reveal">
+      <div class="reveal-top">🔥 New Drop 🔥</div>
+      <div class="clip"><span class="reveal-line" id="rl1">IT'S</span></div>
+      <div class="clip"><span class="reveal-line" id="rl2">FINALLY</span></div>
+      <div class="clip"><span class="reveal-line" id="rl3">HERE.</span></div>
+      <div class="rule" id="rule"></div>
+      <div class="reveal-sub" id="rsub">Limited. Exclusive. Now.</div>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+
+        // Rings pulse
+        tl.to(["#r1","#r2","#r3"], { opacity: 1, scale: 1.6, duration: 4, ease: "power1.out", stagger: 0.4, repeat: -1, repeatDelay: 0 }, 0);
+
+        tl.to("#teaser", { opacity: 1, duration: 0.6 }, 0.2);
+
+        // Countdown
+        function countNum(id, t) {
+          tl.to(id, { opacity: 1, scale: 1, duration: 0.15, ease: "power4.out" }, t);
+          tl.to(id, { opacity: 0, scale: 0.7, duration: 0.2, ease: "power2.in" }, t + 0.7);
+          tl.to("#flash", { opacity: 0.4, duration: 0.06, yoyo: true, repeat: 1 }, t);
+        }
+        tl.to("#teaser", { opacity: 0, duration: 0.3 }, 1.3);
+        tl.to("#clabel", { opacity: 1, duration: 0.3 }, 1.5);
+        countNum("#c3", 1.8);
+        countNum("#c2", 2.8);
+        countNum("#c1", 3.8);
+
+        // Big flash + reveal
+        tl.to("#flash", { opacity: 1, duration: 0.08 }, 4.7);
+        tl.to("#burst", { opacity: 1, duration: 0.3, ease: "power4.out" }, 4.78);
+        tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, 4.78);
+        tl.to("#clabel", { opacity: 0, duration: 0.1 }, 4.7);
+        tl.to("#reveal", { opacity: 1, duration: 0.1 }, 4.78);
+        tl.to("#rl1", { y: 0, duration: 0.4, ease: "power4.out" }, 4.85);
+        tl.to("#rl2", { y: 0, duration: 0.4, ease: "power4.out" }, 5.05);
+        tl.to("#rl3", { y: 0, duration: 0.4, ease: "power4.out" }, 5.25);
+        tl.to("#rule", { width: 600, duration: 0.6, ease: "power3.out" }, 5.6);
+        tl.to("#rsub", { opacity: 1, duration: 0.5 }, 5.9);
+        tl.to("#burst", { opacity: 0, duration: 2, ease: "power2.out" }, 6.0);
+      })();
+    </script>
+  </div>
+</body>
+</html>

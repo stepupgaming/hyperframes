@@ -1,0 +1,10 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "viral-hook",
+  "type": "hyperframes:example",
+  "title": "Viral Hook",
+  "description": "Fast-paced TikTok hook with text pop and punch-in reveal",
+  "dimensions": { "width": 1080, "height": 1920 },
+  "duration": 10,
+  "files": [{ "path": "index.html", "target": "index.html", "type": "hyperframes:composition" }]
+}
